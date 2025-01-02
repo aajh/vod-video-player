@@ -1,9 +1,16 @@
-<script setup lang="ts">
-import TheWelcome from '../components/TheWelcome.vue'
-</script>
-
 <template>
-  <main>
-    <TheWelcome />
-  </main>
+    <main>
+        <h1>Home page</h1>
+    </main>
 </template>
+
+<style scoped>
+main {
+    display: flex;
+    flex-direction: column;
+}
+
+p {
+    margin-top: auto;
+}
+</style>
