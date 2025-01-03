@@ -30,11 +30,10 @@ function pause() {
 
 <template>
     <div>
-        <h1>This is the watch page</h1>
         <YoutubePlayer
             ref="vod-player"
-            v-model:state="vodPlayerState"
             element-id="vod-player"
+            v-model:state="vodPlayerState"
             :width="320"
             :height="195"
             video-id="Q3Kvu6Kgp88"

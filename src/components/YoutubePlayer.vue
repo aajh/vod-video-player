@@ -41,7 +41,7 @@ const props = defineProps<{
     elementId: string,
     width: number,
     height: number,
-    videoId: string,
+    videoId: string | null,
 }>();
 
 const state = defineModel<PlayerState>('state', { default: PlayerState.Unstarted });
@@ -104,7 +104,7 @@ onMounted(async () => {
                 }
             },
             onStateChange: e => {
-                state.value = e.data;
+                state.value = e.data as unknown as PlayerState;
             },
         },
     });
@@ -116,7 +116,11 @@ watch(() => props.videoId, (newVideoId, oldVideoId) => {
     }
 
     if (player) {
-        player.cueVideoById(newVideoId);
+        if (newVideoId) {
+            player.cueVideoById(newVideoId);
+        } else {
+            player.stopVideo();
+        }
     } else {
         videoIdToBeQueued = newVideoId;
     }
