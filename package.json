@@ -20,6 +20,7 @@
         "@cloudflare/workers-types": "^4.20241230.0",
         "@tsconfig/node22": "^22.0.0",
         "@types/node": "^22.9.3",
+        "@types/youtube": "^0.1.0",
         "@vitejs/plugin-vue": "^5.2.1",
         "@vue/eslint-config-typescript": "^14.1.3",
         "@vue/tsconfig": "^0.7.0",
