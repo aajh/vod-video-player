@@ -1,0 +1,18 @@
+vodFileVersion 1
+vodId M7lc1UVf-VE
+
+0 pause
+1000 cueVideo Q3Kvu6Kgp88
+2000 play
+4000 pause
+5000 play
+7000 seek 60000
+8000 seek 120000
+9000 pause
+10000 play
+15000 pause
+16000 loadVideo Fgn8gZHJZzA
+20000 pause
+22000 play
+30000 seek 60000
+40000 pause
