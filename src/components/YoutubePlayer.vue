@@ -37,16 +37,28 @@ const youtubeIframeApiPromise: Promise<void> = new Promise(resolve => {
 <script setup lang="ts">
 import { onMounted, watch } from 'vue';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
     elementId: string,
     width: number,
     height: number,
     videoId: string | null,
-}>();
+    playerVars?: YT.PlayerVars,
+}>(), {
+    playerVars: () => ({
+        playsinline: 1,
+    }),
+});
 
 const state = defineModel<PlayerState>('state', { default: PlayerState.Unstarted });
 
+const emit = defineEmits<{
+    (e: 'ready'): void,
+}>();
+
 defineExpose({
+    ready() {
+        return !!player;
+    },
     getCurrentTime() {
         if (!player) {
             return 0;
@@ -84,6 +96,7 @@ defineExpose({
     },
 });
 
+const theElementId = props.elementId;
 
 let player: YT.Player | null = null;
 let videoIdToBeQueued: string | null = null;
@@ -102,6 +115,7 @@ onMounted(async () => {
                 if (videoIdToBeQueued) {
                     player.cueVideoById(videoIdToBeQueued);
                 }
+                emit('ready');
             },
             onStateChange: e => {
                 state.value = e.data as unknown as PlayerState;
@@ -130,5 +144,5 @@ watch(() => props.videoId, (newVideoId, oldVideoId) => {
 </script>
 
 <template>
-    <div :id="elementId"></div>
+    <div :id="theElementId"></div>
 </template>

@@ -16,7 +16,6 @@ export interface Moment {
 }
 
 export interface VodFile {
-    vodFileVersion: string;
     vodId: string;
     timeline: Moment[];
 }
@@ -33,11 +32,12 @@ enum ParserState {
 }
 
 export function parseVodFile(fileContent: string): VodFile | null {
-    const result: Partial<VodFile> = {};
     let state = ParserState.Header;
+    const result: Partial<VodFile> = {};
+    let vodFileVersion = null;
     const rawTimeline: FileMoment[] = [];
-    const lines = fileContent.split('\n');
 
+    const lines = fileContent.split('\n');
     for (const line of lines) {
         const trimmed = line.trim();
         if (trimmed === '') {
@@ -52,7 +52,7 @@ export function parseVodFile(fileContent: string): VodFile | null {
             case ParserState.Header:
                 switch (words[0]) {
                     case 'vodFileVersion':
-                        result.vodFileVersion = words[1];
+                        vodFileVersion = words[1];
                         break;
                     case 'vodId':
                         result.vodId = words[1];
@@ -73,8 +73,8 @@ export function parseVodFile(fileContent: string): VodFile | null {
         }
     }
 
-    if (result.vodFileVersion !== VOD_PARSER_VERSION) {
-        console.error(`Unsupported VOD file version ${result.vodFileVersion}. Expected version ${VOD_PARSER_VERSION}.`);
+    if (vodFileVersion !== VOD_PARSER_VERSION) {
+        console.error(`Unsupported VOD file version ${vodFileVersion}. Expected version ${VOD_PARSER_VERSION}.`);
         return null;
     }
     if (!result.vodId) {
