@@ -1,6 +1,3 @@
-Add secondVideoTime to pause and play events
-Add periodic sync events
-
 Way to save the recording
 Confirm dialog when exiting
 Confirm recording stop
@@ -10,7 +7,6 @@ Parse second video ID from player.getVideoUrl to make sure correct video is play
 Controls for the second video
 Handle events from both players (play/pause etc.)
 Remember play position
-Do a seek on pause/play
 
 Make it pretty
 CSS reset

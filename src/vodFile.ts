@@ -5,6 +5,7 @@ export enum MomentTag {
     Pause = 'pause',
     Stop = 'stop',
     Seek = 'seek',
+    Sync = 'sync',
 }
 export interface Moment {
     time: number;
@@ -124,18 +125,25 @@ function parseTimelineMoments(timeline: FileMoment[]): Moment[] {
             case MomentTag.Play:
                 secondTime += 0; // No-op
                 playing = true;
+                if (argument) {
+                    argument = parseInt(argument, 10) / 1000;
+                }
                 break;
             case MomentTag.Pause:
                 secondTime += (time - previousVodTime);
                 playing = false;
+                if (argument) {
+                    argument = parseInt(argument, 10) / 1000;
+                }
                 break;
             case MomentTag.Stop:
                 secondTime = 0;
                 playing = false;
                 break;
             case MomentTag.Seek:
+            case MomentTag.Sync:
                 if (!argument) {
-                    console.warn('No time given to seek');
+                    console.warn(`No time given to ${tag}`);
                     continue;
                 }
                 argument = parseInt(argument, 10) / 1000;

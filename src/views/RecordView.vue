@@ -6,11 +6,14 @@ import { MomentTag } from '@/vodFile';
 import YoutubePlayer from '@/components/YoutubePlayer.vue';
 import { PlayerState } from '@/components/YoutubePlayer.vue';
 
+const RECORING_SYNC_INTERVAL_MS = 5000;
+
 const player = useTemplateRef<typeof YoutubePlayer>('player');
 const playerState = ref(PlayerState.Unstarted);
 
 const isRecording = ref(false);
-const recordingStart = ref(0);
+let recordingStart = 0;
+let syncIntervalId = 0;
 
 const videoId = ref<string | null>(null);
 
@@ -22,14 +25,15 @@ interface RecordedMoment {
 const recording = ref([] as RecordedMoment[]);
 
 watch(playerState, (state, oldState) => {
-    if (!isRecording.value) {
+    if (!player.value || !isRecording.value) {
         return;
     }
 
+    const playerTimeMs = Math.round(player.value.getCurrentTime() * 1000);
     if (state === PlayerState.Playing) {
-        recordMoment(MomentTag.Play);
+        recordMoment(MomentTag.Play, playerTimeMs);
     } else if (oldState === PlayerState.Playing) {
-        recordMoment(MomentTag.Pause);
+        recordMoment(MomentTag.Pause, playerTimeMs);
     }
 });
 
@@ -52,13 +56,33 @@ function onSeek() {
     recordMoment(MomentTag.Seek, playerTimeMs);
 }
 
+function onSync() {
+    if (!player.value || !isRecording.value) {
+        if (syncIntervalId) {
+            clearInterval(syncIntervalId);
+            syncIntervalId = 0;
+        }
+        return;
+    }
+
+    if (recording.value.length === 0) {
+        return;
+    }
+
+    const playerTimeMs = Math.round(player.value.getCurrentTime() * 1000);
+    const latestMoment = recording.value[recording.value.length - 1];
+    if (latestMoment?.tag !== MomentTag.Sync || latestMoment.argument !== playerTimeMs) {
+        recordMoment(MomentTag.Sync, playerTimeMs);
+    }
+}
+
 function start() {
     if (!player.value) {
         return;
     }
 
     isRecording.value = true;
-    recordingStart.value = Date.now();
+    recordingStart = Date.now();
 
     recording.value = [];
     if (videoId.value) {
@@ -72,6 +96,11 @@ function start() {
             recordMoment(MomentTag.Seek, playerTimeMs);
         }
     }
+
+    if (syncIntervalId) {
+        clearInterval(syncIntervalId);
+    }
+    syncIntervalId = setInterval(onSync, RECORING_SYNC_INTERVAL_MS);
 }
 
 function stop() {
@@ -103,7 +132,7 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
     }
 
     recording.value.push({
-        time: Date.now() - recordingStart.value,
+        time: Date.now() - recordingStart,
         tag,
         argument,
     });

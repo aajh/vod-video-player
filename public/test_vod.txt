@@ -4,16 +4,18 @@ timeOffset 0
 
 0 pause
 1000 cueVideo Q3Kvu6Kgp88
-2000 play
-4000 pause
-5000 play
+2000 play 0
+4000 pause 2000
+5000 play 2000
 7000 seek 60000
 8000 seek 120000
-9000 pause
-10000 play
-15000 pause
+9000 pause 121000
+10000 play 121000
+13000 sync 124000
+15000 pause 126000
 16000 loadVideo Fgn8gZHJZzA
-20000 pause
-22000 play
+20000 pause 4000
+22000 play 4000
+24000 sync 6000
 30000 seek 60000
-40000 pause
+40000 pause 70000

@@ -59,7 +59,9 @@ function tick() {
     if (moment !== state.currentMoment) {
         switch (moment?.tag) {
             case MomentTag.Seek:
-                secondPlayer.value!.seekTo(moment.argument);
+            case MomentTag.Play:
+            case MomentTag.Pause:
+                secondPlayer.value!.seekTo(moment.secondTime);
                 break;
             case MomentTag.Stop:
                 stop();
