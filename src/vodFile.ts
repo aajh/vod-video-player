@@ -12,11 +12,11 @@ export interface Moment {
     videoId: string | null;
     playing: boolean;
     tag: MomentTag;
-    value: number | string | null;
+    argument?: number | string;
 }
 
 export interface VodFile {
-    vodId: string;
+    vodVideoId: string;
     timeline: Moment[];
 }
 
@@ -24,6 +24,7 @@ export interface VodFile {
 const VOD_PARSER_VERSION = '1';
 const WHITESPACE_REGEX = /\s+/;
 
+// [time, tag, argument]
 type FileMoment = [number, string, string | undefined];
 
 enum ParserState {
@@ -35,6 +36,7 @@ export function parseVodFile(fileContent: string): VodFile | null {
     let state = ParserState.Header;
     const result: Partial<VodFile> = {};
     let vodFileVersion = null;
+    let timeOffset = 0;
     const rawTimeline: FileMoment[] = [];
 
     const lines = fileContent.split('\n');
@@ -54,8 +56,11 @@ export function parseVodFile(fileContent: string): VodFile | null {
                     case 'vodFileVersion':
                         vodFileVersion = words[1];
                         break;
-                    case 'vodId':
-                        result.vodId = words[1];
+                    case 'vodVideoId':
+                        result.vodVideoId = words[1];
+                        break;
+                    case 'timeOffset':
+                        timeOffset = parseInt(words[1], 10) / 1000;
                         break;
                     default:
                         console.error(`Invalid property ${words[0]}`);
@@ -66,8 +71,8 @@ export function parseVodFile(fileContent: string): VodFile | null {
                     console.error(`Invalid line ${line}`);
                     continue;
                 }
-                const [time, tag, value] = words;
-                const rawMoment: FileMoment = [parseInt(time, 10) / 1000, tag, value];
+                const [time, tag, argument] = words;
+                const rawMoment: FileMoment = [parseInt(time, 10) / 1000 + timeOffset, tag, argument];
                 rawTimeline.push(rawMoment);
                 break;
         }
@@ -77,7 +82,7 @@ export function parseVodFile(fileContent: string): VodFile | null {
         console.error(`Unsupported VOD file version ${vodFileVersion}. Expected version ${VOD_PARSER_VERSION}.`);
         return null;
     }
-    if (!result.vodId) {
+    if (!result.vodVideoId) {
         console.error('File had no VOD id');
         return null;
     }
@@ -103,17 +108,17 @@ function parseTimelineMoments(timeline: FileMoment[]): Moment[] {
         const rawMoment = timeline[i];
         const time = rawMoment[0];
         const tag = rawMoment[1] as MomentTag;
-        let value: Moment['value'] = rawMoment[2] ?? null;
+        let argument: Moment['argument'] = rawMoment[2];
 
         switch (tag) {
             case MomentTag.CueVideo:
                 secondTime = 0;
-                videoId = value;
+                videoId = argument ?? null;
                 playing = false;
                 break;
             case MomentTag.LoadVideo:
                 secondTime = 0;
-                videoId = value;
+                videoId = argument ?? null;
                 playing = true;
                 break;
             case MomentTag.Play:
@@ -129,12 +134,12 @@ function parseTimelineMoments(timeline: FileMoment[]): Moment[] {
                 playing = false;
                 break;
             case MomentTag.Seek:
-                if (!value) {
+                if (!argument) {
                     console.warn('No time given to seek');
                     continue;
                 }
-                value = parseInt(value, 10) / 1000;
-                secondTime = value;
+                argument = parseInt(argument, 10) / 1000;
+                secondTime = argument;
                 break;
             default:
                 const exhaustiveSwitchCheck: never = tag;
@@ -149,7 +154,7 @@ function parseTimelineMoments(timeline: FileMoment[]): Moment[] {
             videoId,
             playing,
             tag,
-            value,
+            argument: argument,
         };
     }
 

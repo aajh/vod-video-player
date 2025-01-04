@@ -59,7 +59,7 @@ function tick() {
     if (moment !== state.currentMoment) {
         switch (moment?.tag) {
             case MomentTag.Seek:
-                secondPlayer.value!.seekTo(moment.value);
+                secondPlayer.value!.seekTo(moment.argument);
                 break;
             case MomentTag.Stop:
                 stop();
@@ -240,7 +240,7 @@ watch(vodPlayerState, newState => {
             @ready="onReady"
             :width="320"
             :height="195"
-            :video-id="state.vodFile?.vodId ?? null"
+            :video-id="state.vodFile?.vodVideoId ?? null"
         />
         <YoutubePlayer
             ref="second-player"
@@ -283,7 +283,7 @@ watch(vodPlayerState, newState => {
                     <th scope="col">VOD Time</th>
                     <th scope="col">2nd Video Time</th>
                     <th scope="col">Event Tag</th>
-                    <th scope="col">Event Value</th>
+                    <th scope="col">Event Argument</th>
                 </tr>
             </thead>
             <tbody>
@@ -295,7 +295,7 @@ watch(vodPlayerState, newState => {
                     <td>{{moment.time}}</td>
                     <td>{{moment.secondTime}}</td>
                     <td>{{moment.tag}}</td>
-                    <td>{{moment.value}}</td>
+                    <td>{{moment.argument}}</td>
                 </tr>
             </tbody>
         </table>

@@ -1,5 +1,6 @@
 vodFileVersion 1
-vodId M7lc1UVf-VE
+vodVideoId M7lc1UVf-VE
+timeOffset 0
 
 0 pause
 1000 cueVideo Q3Kvu6Kgp88

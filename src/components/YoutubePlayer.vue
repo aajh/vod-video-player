@@ -37,6 +37,10 @@ const youtubeIframeApiPromise: Promise<void> = new Promise(resolve => {
 <script setup lang="ts">
 import { onMounted, watch } from 'vue';
 
+// Note: Cannot detect seeks smaller than the check interval plus slack when not paused
+const SEEK_CHECK_INTERVAL_MS = 1000 / 120;
+const SEEK_CHECK_SLACK_S = 0.3;
+
 const props = withDefaults(defineProps<{
     elementId: string,
     width: number,
@@ -53,6 +57,7 @@ const state = defineModel<PlayerState>('state', { default: PlayerState.Unstarted
 
 const emit = defineEmits<{
     (e: 'ready'): void,
+    (e: 'seek'): void,
 }>();
 
 defineExpose({
@@ -100,6 +105,7 @@ const theElementId = props.elementId;
 
 let player: YT.Player | null = null;
 let videoIdToBeQueued: string | null = null;
+let lastSeekCheckPlayerTime: number | null = null;
 onMounted(async () => {
     await youtubeIframeApiPromise;
 
@@ -122,6 +128,40 @@ onMounted(async () => {
             },
         },
     });
+
+    let lastSeekCheckTime = 0;
+    let lastState = PlayerState.Unstarted;
+    setInterval(() => {
+        if (!player) {
+            return;
+        }
+
+        const now = Date.now();
+        const playerTime = player.getCurrentTime();
+        const clockDelta = (now - lastSeekCheckTime) / 1000;
+        const videoNotReady = state.value === PlayerState.Unstarted || state.value === PlayerState.Cued;
+        if (!lastSeekCheckTime || !lastSeekCheckPlayerTime || videoNotReady || clockDelta < 0) {
+            if (!videoNotReady) {
+                lastSeekCheckPlayerTime = playerTime;
+            }
+            lastSeekCheckTime = now;
+            lastState = state.value;
+            return;
+        }
+
+        const playDelta = playerTime - lastSeekCheckPlayerTime;
+        if (state.value === PlayerState.Paused && lastState === PlayerState.Paused) {
+            if (playDelta) {
+                emit('seek');
+            }
+        } else if (playDelta < -SEEK_CHECK_SLACK_S || playDelta > clockDelta + SEEK_CHECK_SLACK_S) {
+            emit('seek');
+        }
+
+        lastSeekCheckPlayerTime = playerTime;
+        lastSeekCheckTime = now;
+        lastState = state.value;
+    }, SEEK_CHECK_INTERVAL_MS);
 });
 
 watch(() => props.videoId, (newVideoId, oldVideoId) => {
@@ -132,12 +172,14 @@ watch(() => props.videoId, (newVideoId, oldVideoId) => {
     if (player) {
         if (newVideoId) {
             player.cueVideoById(newVideoId);
+            state.value = PlayerState.Unstarted;
         } else {
             player.stopVideo();
         }
     } else {
         videoIdToBeQueued = newVideoId;
     }
+    lastSeekCheckPlayerTime = null;
 }, {
     immediate: true,
 });
