@@ -42,7 +42,7 @@
     --color-button-active: hsl(160, 100%, 65%);
     --color-button-text: hsl(0, 0%, 16%);
 
-    --text-content-max-width: 1280px;
+    --text-content-max-width: 800px;
 
     --top-nav-padding-top: 1.5rem;
     --top-nav-padding-bottom: 1rem;
@@ -86,7 +86,6 @@ a,
     text-decoration: none;
     color: var(--color-link);
     transition: background-color var(--transition-time);
-    padding: 3px;
 }
 
 @media (hover: hover) {
