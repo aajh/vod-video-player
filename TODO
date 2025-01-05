@@ -7,6 +7,7 @@ Better error handling
 VOD watching link generator
 
 # Recorder
+Fix control clipping with the navigation
 Confirm dialog when closing the tab while recording
 Confirm recording stop
 Solution for syncing the recording to the VOD

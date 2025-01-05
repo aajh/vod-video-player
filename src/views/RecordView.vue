@@ -255,10 +255,28 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
 </template>
 
 <style scoped>
+.container {
+    display: grid;
+    width: 100vw;
+    height: 100vh;
+
+    margin-top: var(--margin-top);
+    padding: 1rem;
+    padding-top: 0.25rem;
+    grid-gap: 0.5rem;
+
+    grid-template-columns: 100%;
+    grid-template-rows: var(--top-nav-height) 1fr;
+
+    align-items: center;
+    justify-items: center;
+}
+
 .controls {
     display: flex;
-    gap: 2rem;
+    gap: 1rem;
     align-items: center;
+    z-index: 10;
 }
 
 .video-change-form {
@@ -267,24 +285,6 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
     align-items: center;
 }
 
-.container {
-    --margin-top: calc(var(--top-nav-height));
-
-    display: grid;
-    width: 100vw;
-    height: calc(100vh - var(--margin-top));
-
-    margin-top: var(--margin-top);
-    padding: 1.5rem;
-    padding-top: 0.5rem;
-    grid-gap: 1rem;
-
-    grid-template-columns: 100%;
-    grid-template-rows: auto 1fr;
-
-    align-items: center;
-    justify-items: center;
-}
 
 /* TODO: Extract this and use this in VodPLayer.vue */
 .player-container-outer {
