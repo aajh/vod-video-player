@@ -4,7 +4,7 @@ import { ref, useTemplateRef, watch } from 'vue';
 import { MomentTag } from '@/vodFile';
 
 import YoutubePlayer from '@/components/YoutubePlayer.vue';
-import { PlayerState } from '@/components/YoutubePlayer.vue';
+import { PlayerState, getVideoIdFromUrl } from '@/components/YoutubePlayer.vue';
 
 const RECORING_SYNC_INTERVAL_MS = 5000;
 
@@ -118,12 +118,13 @@ function changeVideo(event: Event) {
     }
 
     const formData = new FormData(event.target as HTMLFormElement);
-    const newVideoId = formData.get('videoId');
-    if (!newVideoId) {
+    const newVideoIdEntry = formData.get('videoId');
+    if (!newVideoIdEntry) {
         return;
     }
 
-    videoId.value = newVideoId as string;
+    const newVideoId = newVideoIdEntry as string;
+    videoId.value = getVideoIdFromUrl(newVideoId) ?? newVideoId;
 }
 
 function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {

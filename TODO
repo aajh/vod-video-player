@@ -1,16 +1,17 @@
 Playback speed support
-Url instead of id
+Test 2nd video ending
 Make it pretty
 CSS reset
+Ads?
 
 # Recorder
 Way to save the recording
-Confirm dialog when exiting
+Confirm dialog when closing the tab while recording
 Confirm recording stop
 Solution for syncing the recording to the VOD
+    Visual (and audio?) cue when the recording starts?
 
 # Player
-Parse second video ID from player.getVideoUrl to make sure correct video is playing
 Handle events from both players (play/pause etc.)
 Remember play position
 Different layouts

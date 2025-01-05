@@ -8,6 +8,23 @@ export enum PlayerState {
     Cued = 5,
 };
 
+export function getVideoIdFromUrl(url: string | URL) {
+    if (typeof url === 'string') {
+        try {
+            url = new URL(url);
+        } catch {
+            return null;
+        }
+    }
+
+    if (url.pathname.includes('/embed/')) {
+        const s = url.pathname.split('/');
+        return s[s.length - 1];
+    }
+
+    return url.searchParams.get('v') ?? null;
+}
+
 const YOUTUBE_IFRAME_API_URL =  'https://www.youtube.com/iframe_api';
 const youtubeIframeApiPromise: Promise<void> = new Promise(resolve => {
     if (window.YT) {
@@ -40,6 +57,7 @@ import { onMounted, watch } from 'vue';
 // Note: Cannot detect seeks smaller than the check interval plus slack when not paused
 const SEEK_CHECK_INTERVAL_MS = 1000 / 120;
 const SEEK_CHECK_SLACK_S = 0.3;
+const VIDEO_CHECK_CUE_TIMEOUT_MS = 2000;
 
 const props = withDefaults(defineProps<{
     elementId: string,
@@ -71,6 +89,7 @@ defineExpose({
 
         return player.getCurrentTime();
     },
+    getVideoId,
     play() {
         if (!player) {
             return;
@@ -105,6 +124,7 @@ const theElementId = props.elementId;
 
 let player: YT.Player | null = null;
 let videoIdToBeQueued: string | null = null;
+let lastVideoCueTime = 0;
 let lastSeekCheckPlayerTime: number | null = null;
 onMounted(async () => {
     await youtubeIframeApiPromise;
@@ -156,6 +176,14 @@ onMounted(async () => {
             emit('seek');
         }
 
+        if (props.videoId && Date.now() - lastVideoCueTime > VIDEO_CHECK_CUE_TIMEOUT_MS) {
+            const playerVideoId = getVideoId();
+            if (props.videoId !== playerVideoId) {
+                player.cueVideoById(props.videoId);
+                lastVideoCueTime = Date.now();
+            }
+        }
+
         lastSeekCheckPlayerTime = playerTime;
         lastSeekCheckTime = now;
         lastState = state.value;
@@ -170,7 +198,7 @@ watch(() => props.videoId, (newVideoId, oldVideoId) => {
     if (player) {
         if (newVideoId) {
             player.cueVideoById(newVideoId);
-            state.value = PlayerState.Unstarted;
+            lastVideoCueTime = Date.now();
         } else {
             player.stopVideo();
         }
@@ -181,6 +209,19 @@ watch(() => props.videoId, (newVideoId, oldVideoId) => {
 }, {
     immediate: true,
 });
+
+function getVideoId() {
+    if (!player) {
+        return null;
+    }
+
+    const url = player.getVideoUrl();
+    if (!url) {
+        return null;
+    }
+
+    return getVideoIdFromUrl(url);
+}
 </script>
 
 <template>
