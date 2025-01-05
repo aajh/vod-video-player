@@ -158,6 +158,11 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
 </script>
 
 <template>
+    <header class="top-nav">
+        <RouterLink to="/">Home</RouterLink>
+        <RouterLink to="/watch">Watch</RouterLink>
+        <RouterLink to="/record">Record</RouterLink>
+    </header>
     <div>
         <form @submit.prevent="changeVideo">
             <label for="videoId">Youtube video ID</label>
@@ -175,9 +180,8 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
             @seek="onSeek"
             :video-id
             :width="640"
-            :height="390"
-        />
-        <div id="controls" :class="player || 'not-ready'">
+            :height="390" />
+        <div class="controls" :class="!!player || 'not-ready'">
             <button v-show="!isRecording && !recording.length" @click="start" type="button">Start</button>
             <button v-show="isRecording" @click="stop" type="button">Stop</button>
             <button v-show="!isRecording && recording.length" @click="save" type="button">Save</button>

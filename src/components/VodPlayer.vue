@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, useTemplateRef, watch } from 'vue';
+import { nextTick, onMounted, onUnmounted, reactive, ref, useTemplateRef, watch } from 'vue';
 
 import { MomentTag } from '@/vodFile';
 import type { Moment, VodFile } from '@/vodFile';
@@ -28,9 +28,13 @@ const state = reactive(Object.assign({}, defaultState));
 const ready = ref(false);
 
 const vodPlayer = useTemplateRef<typeof YoutubePlayer>('vod-player');
+const vodPlayerContainer = useTemplateRef<HTMLElement>('vod-player-container');
+const vodPlayerSize = ref(new DOMRect(0, 0, 640, 390));
 const vodPlayerState = ref(PlayerState.Unstarted);
 
 const secondPlayer = useTemplateRef<typeof YoutubePlayer>('second-player');
+const secondPlayerContainer = useTemplateRef<HTMLElement>('second-player-container');
+const secondPlayerSize = ref(new DOMRect(0, 0, 640, 390));
 const secondPlayerState = ref(PlayerState.Unstarted);
 
 function onReady() {
@@ -207,6 +211,27 @@ async function seek(time: number) {
     tick(true);
 }
 
+let sizeInterval = 0;
+onMounted(() => {
+    updatePlayerSizes()
+    if (sizeInterval) {
+        clearInterval(sizeInterval);
+        sizeInterval = 0;
+    }
+    sizeInterval = setInterval(updatePlayerSizes, TICK_DELAY_MS);
+});
+onUnmounted(() => {
+    if (sizeInterval) {
+        clearInterval(sizeInterval);
+        sizeInterval = 0;
+    }
+});
+function updatePlayerSizes() {
+    // TODO: Attach size update to window size event
+    vodPlayerSize.value = vodPlayerContainer.value?.getBoundingClientRect?.() ?? vodPlayerSize.value;
+    secondPlayerSize.value = secondPlayerContainer.value?.getBoundingClientRect?.() ?? secondPlayerSize.value;
+}
+
 watch(vodPlayerState, newState => {
     switch (newState) {
         case PlayerState.Playing:
@@ -229,72 +254,98 @@ watch(() => props.vodFile, () => {
 </script>
 
 <template>
-    <div>
-        <YoutubePlayer
-            ref="vod-player"
-            element-id="vod-player"
-            v-model:state="vodPlayerState"
-            @ready="onReady"
-            :width="640"
-            :height="390"
-            :video-id="vodFile?.vodVideoId ?? null"
-        />
-        <YoutubePlayer
-            ref="second-player"
-            element-id="second-player"
-            v-model:state="secondPlayerState"
-            @ready="onReady"
-            :width="640"
-            :height="390"
-            :video-id="state.currentMoment?.videoId ?? null"
-        />
-        <div id="controls" :class="ready || 'not-ready'">
-            <button v-show="!state.running" @click="play" type="button">Play</button>
-            <button v-show="state.running" @click="pause" type="button">Pause</button>
-            <button :disabled="state.time === 0" @click="stop" type="button">Stop</button>
-            <div>
-                Time {{state.time}}
-            </div>
-            <div :class="{
-                active: vodPlayerState === PlayerState.Playing,
-                buffering: vodPlayerState === PlayerState.Buffering,
-            }">
-                VOD player state {{PlayerState[vodPlayerState]}}
-            </div>
-            <div :class="{
-                active: secondPlayerState === PlayerState.Playing,
-                buffering: secondPlayerState === PlayerState.Buffering,
-            }">
-                2nd player state {{PlayerState[secondPlayerState]}}
-            </div>
+    <div class="container">
+        <div ref="vod-player-container" class="player-container">
+            <YoutubePlayer
+                ref="vod-player"
+                element-id="vod-player"
+                v-model:state="vodPlayerState"
+                @ready="onReady"
+                :width="vodPlayerSize.width"
+                :height="vodPlayerSize.height"
+                :video-id="vodFile?.vodVideoId ?? null" />
+        </div>
+        <div ref="second-player-container" class="player-container">
+            <YoutubePlayer
+                ref="second-player"
+                element-id="second-player"
+                v-model:state="secondPlayerState"
+                @ready="onReady"
+                :width="secondPlayerSize.width"
+                :height="secondPlayerSize.height"
+                :video-id="state.currentMoment?.videoId ?? null" />
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th scope="col">VOD Time</th>
-                    <th scope="col">2nd Video Time</th>
-                    <th scope="col">Event Tag</th>
-                    <th scope="col">Event Argument</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr
-                    v-for="moment in vodFile?.timeline ?? []"
-                    :key="moment.time"
-                    :class="moment === state.currentMoment ? 'active' : ''"
-                    @click="seek(moment.time)">
-                    <td>{{moment.time}}</td>
-                    <td>{{moment.secondTime}}</td>
-                    <td>{{moment.tag}}</td>
-                    <td>{{moment.argument}}</td>
-                </tr>
-            </tbody>
-        </table>
+        <div v-if="false" class="debug">
+            <div class="debug-controls" :class="!!ready || 'not-ready'">
+                <button v-show="!state.running" @click="play" type="button">Play</button>
+                <button v-show="state.running" @click="pause" type="button">Pause</button>
+                <button :disabled="state.time === 0" @click="stop" type="button">Stop</button>
+                <div>
+                    Time {{ state.time }}
+                </div>
+                <div :class="{
+                    active: vodPlayerState === PlayerState.Playing,
+                    buffering: vodPlayerState === PlayerState.Buffering,
+                }">
+                    VOD player state {{ PlayerState[vodPlayerState] }}
+                </div>
+                <div :class="{
+                    active: secondPlayerState === PlayerState.Playing,
+                    buffering: secondPlayerState === PlayerState.Buffering,
+                }">
+                    2nd player state {{ PlayerState[secondPlayerState] }}
+                </div>
+            </div>
+
+            <table class="debug-timeline">
+                <thead>
+                    <tr>
+                        <th scope="col">VOD Time</th>
+                        <th scope="col">2nd Video Time</th>
+                        <th scope="col">Event Tag</th>
+                        <th scope="col">Event Argument</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        v-for="moment in vodFile?.timeline ?? []"
+                        :key="moment.time"
+                        :class="moment === state.currentMoment ? 'active' : ''"
+                        @click="seek(moment.time)">
+                        <td>{{ moment.time }}</td>
+                        <td>{{ moment.secondTime }}</td>
+                        <td>{{ moment.tag }}</td>
+                        <td>{{ moment.argument }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </template>
 
 <style scoped>
+.container {
+    display: grid;
+    width: 100vw;
+    height: 100vh;
+
+    padding: .75rem;
+    grid-gap: .75rem;
+
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: 1fr;
+
+    align-items: center;
+}
+
+.player-container {
+    display: grid;
+    grid-template: 100% / 100%;
+    aspect-ratio: 16 / 9;
+    width: 100%;
+}
+
 .active {
     background-color: rgb(142, 251, 142);
 }

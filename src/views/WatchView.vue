@@ -73,13 +73,51 @@ async function loadVodFromFile() {
 </script>
 
 <template>
-    <div v-show="vodFile === null">
-        <label for="vodFile">VOD file selector</label>
-        <input ref="vodFileInput" type="file" id="vodFile" name="vodFile" @change="loadVodFromFile" />
-        <button @click="loadVodFromUrl(TEST_VOD_FILE_URL)" type="button">Load test VOD</button>
+    <header class="top-nav">
+        <RouterLink to="/">Home</RouterLink>
+        <RouterLink to="/watch">Watch</RouterLink>
+        <RouterLink to="/record">Record</RouterLink>
+    </header>
+    <div class="vod-selector" v-show="!vodFile">
+        <h2 class="vod-file-label">
+            Select VOD file to watch
+        </h2>
+        <div class="vod-file-input-container">
+            <input
+                ref="vodFileInput"
+                class="visually-hidden"
+                type="file"
+                id="vodFile"
+                name="vodFile"
+                @change="loadVodFromFile"
+            />
+            <button type="button" @click="vodFileInput?.click?.()">Select VOD file</button>
+        </div>
+        <button v-if="false" @click="loadVodFromUrl(TEST_VOD_FILE_URL)" type="button">Load test VOD</button>
     </div>
-    <VodPlayer v-show="vodFile" :vod-file />
+    <VodPlayer v-if="vodFile" :vod-file />
 </template>
 
 <style scoped>
+.top-nav {
+    position: fixed;
+}
+
+.vod-selector {
+    max-width: 600px;
+    margin: 8.5rem auto 0;
+}
+
+.vod-file-input-container {
+    display: flex;
+    margin-top: 1.5rem;
+    padding: 4rem;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 1rem;
+    border: .1875rem dashed rgb(16, 16, 16);
+    background-color: var(--color-background-mute);
+}
 </style>

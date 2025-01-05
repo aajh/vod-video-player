@@ -210,6 +210,12 @@ watch(() => props.videoId, (newVideoId, oldVideoId) => {
     immediate: true,
 });
 
+watch(() => [props.width, props.height], () => {
+    if (player) {
+        player.setSize(props.width, props.height);
+    }
+});
+
 function getVideoId() {
     if (!player) {
         return null;
