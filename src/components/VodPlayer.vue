@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, reactive, ref, useTemplateRef, watch } from 'vue';
+import { reactive, ref, useTemplateRef, watch } from 'vue';
 
 import { MomentTag } from '@/vodFile';
 import type { Moment, VodFile } from '@/vodFile';
 
+import IframeContainer from '@/components/IframeContainer.vue';
 import YoutubePlayer from '@/components/YoutubePlayer.vue';
 import { PlayerState } from '@/components/YoutubePlayer.vue';
 
@@ -28,13 +29,9 @@ const state = reactive(Object.assign({}, defaultState));
 const ready = ref(false);
 
 const vodPlayer = useTemplateRef<typeof YoutubePlayer>('vod-player');
-const vodPlayerContainer = useTemplateRef<HTMLElement>('vod-player-container');
-const vodPlayerSize = ref(new DOMRect(0, 0, 640, 390));
 const vodPlayerState = ref(PlayerState.Unstarted);
 
 const secondPlayer = useTemplateRef<typeof YoutubePlayer>('second-player');
-const secondPlayerContainer = useTemplateRef<HTMLElement>('second-player-container');
-const secondPlayerSize = ref(new DOMRect(0, 0, 640, 390));
 const secondPlayerState = ref(PlayerState.Unstarted);
 
 function onReady() {
@@ -218,27 +215,6 @@ async function seek(time: number) {
     tick(true);
 }
 
-let sizeInterval = 0;
-onMounted(() => {
-    updatePlayerSizes()
-    if (sizeInterval) {
-        clearInterval(sizeInterval);
-        sizeInterval = 0;
-    }
-    sizeInterval = setInterval(updatePlayerSizes, TICK_DELAY_MS);
-});
-onUnmounted(() => {
-    if (sizeInterval) {
-        clearInterval(sizeInterval);
-        sizeInterval = 0;
-    }
-});
-function updatePlayerSizes() {
-    // TODO: Attach size update to window size event
-    vodPlayerSize.value = vodPlayerContainer.value?.getBoundingClientRect?.() ?? vodPlayerSize.value;
-    secondPlayerSize.value = secondPlayerContainer.value?.getBoundingClientRect?.() ?? secondPlayerSize.value;
-}
-
 watch(vodPlayerState, newState => {
     switch (newState) {
         case PlayerState.Playing:
@@ -262,26 +238,26 @@ watch(() => props.vodFile, () => {
 
 <template>
     <div class="container">
-        <div ref="vod-player-container" class="player-container">
+        <IframeContainer v-slot="{ size }">
             <YoutubePlayer
                 ref="vod-player"
                 element-id="vod-player"
                 v-model:state="vodPlayerState"
                 @ready="onReady"
-                :width="vodPlayerSize.width"
-                :height="vodPlayerSize.height"
+                :width="size.width"
+                :height="size.height"
                 :video-id="vodFile?.vodVideoId ?? null" />
-        </div>
-        <div ref="second-player-container" class="player-container">
+        </IframeContainer>
+        <IframeContainer v-slot="{ size }">
             <YoutubePlayer
                 ref="second-player"
                 element-id="second-player"
                 v-model:state="secondPlayerState"
                 @ready="onReady"
-                :width="secondPlayerSize.width"
-                :height="secondPlayerSize.height"
+                :width="size.width"
+                :height="size.height"
                 :video-id="state.currentMoment?.videoId ?? null" />
-        </div>
+        </IframeContainer>
 
         <div v-if="false" class="debug">
             <div class="debug-controls" :class="!!ready || 'not-ready'">
@@ -344,13 +320,6 @@ watch(() => props.vodFile, () => {
     grid-template-rows: 1fr;
 
     align-items: center;
-}
-
-.player-container {
-    display: grid;
-    grid-template: 100% / 100%;
-    aspect-ratio: 16 / 9;
-    width: 100%;
 }
 
 .active {

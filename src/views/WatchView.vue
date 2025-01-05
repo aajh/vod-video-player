@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useTemplateRef, watch } from 'vue';
+import { computed, onMounted, ref, useTemplateRef } from 'vue';
 import { useRoute } from 'vue-router';
 
 import { parseVodFile, type VodFile } from '@/vodFile';
@@ -20,12 +20,12 @@ const vodFileUrlLink = computed(() => {
     return `${window.location.origin}${route.path}?load=${encodedUrl}`;
 });
 
-watch(() => route.query, (query, oldQuery) => {
-    const { load } = query;
-    if (load && load !== oldQuery?.load) {
+onMounted(() => {
+    const { load } = route.query;
+    if (load) {
         loadVodFromUrl(load as string);
     }
-}, { immediate: true });
+});
 
 async function loadVodFromUrl(url: string) {
     try {

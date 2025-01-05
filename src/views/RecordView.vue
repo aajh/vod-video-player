@@ -1,17 +1,15 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
+import { computed, ref, useTemplateRef, watch } from 'vue';
 
 import { createFilenameTimestamp, MomentTag, saveToDisk, VOD_FILE_TEMPLATE } from '@/vodFile';
 
+import IframeContainer from '@/components/IframeContainer.vue';
 import YoutubePlayer from '@/components/YoutubePlayer.vue';
 import { PlayerState, getVideoIdFromUrl } from '@/components/YoutubePlayer.vue';
 
 const RECORING_SYNC_INTERVAL_MS = 5000;
-const RESIZE_INTERVAL_MS = 10;
 
 const player = useTemplateRef<typeof YoutubePlayer>('player');
-const playerContainer = useTemplateRef<HTMLElement>('player-container');
-const playerSize = ref(new DOMRect(0, 0, 640, 390));
 const playerState = ref(PlayerState.Unstarted);
 
 const isRecording = ref(false);
@@ -54,28 +52,6 @@ watch(videoId, () => {
         recordMoment(MomentTag.CueVideo, videoId.value);
     }
 });
-
-// TODO: Combine this code with the one with VodPlayer.vue
-let sizeInterval = 0;
-onMounted(() => {
-    updatePlayerSizes()
-    if (sizeInterval) {
-        clearInterval(sizeInterval);
-        sizeInterval = 0;
-    }
-    sizeInterval = setInterval(updatePlayerSizes, RESIZE_INTERVAL_MS);
-});
-onUnmounted(() => {
-    if (sizeInterval) {
-        clearInterval(sizeInterval);
-        sizeInterval = 0;
-    }
-});
-function updatePlayerSizes() {
-    // TODO: Attach size update to window size event
-    playerSize.value = playerContainer.value?.getBoundingClientRect?.() ?? playerSize.value;
-    playerSize.value = playerContainer.value?.getBoundingClientRect?.() ?? playerSize.value;
-}
 
 function onSeek() {
     if (!player.value || !isRecording.value) {
@@ -206,20 +182,16 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
             </form>
         </div>
 
-        <div class="player-container-outer">
-            <div class="player-container-middle">
-                <div ref="player-container" class="player-container-inner">
-                    <YoutubePlayer
-                        ref="player"
-                        element-id="player"
-                        v-model:state="playerState"
-                        @seek="onSeek"
-                        :video-id
-                        :width="playerSize.width"
-                        :height="playerSize.height" />
-                </div>
-            </div>
-        </div>
+        <IframeContainer v-slot="{ size }">
+            <YoutubePlayer
+                ref="player"
+                element-id="player"
+                v-model:state="playerState"
+                @seek="onSeek"
+                :video-id
+                :width="size.width"
+                :height="size.height" />
+        </IframeContainer>
 
 
         <div v-if="false">
@@ -283,30 +255,6 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
     display: flex;
     gap: 1rem;
     align-items: center;
-}
-
-
-/* TODO: Extract this and use this in VodPLayer.vue */
-.player-container-outer {
-    display: grid;
-    aspect-ratio: 16 / 9;
-    height: 100%;
-    max-width: 100%;
-    grid-template: 1fr / 100%;
-    align-items: center;
-}
-
-.player-container-middle {
-    position: relative;
-    aspect-ratio: 16 / 9;
-    width: 100%;
-    max-height: 100%;
-}
-
-.player-container-inner {
-    position: absolute;
-    width: 100%;
-    height: 100%;
 }
 
 .active {
