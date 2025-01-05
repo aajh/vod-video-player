@@ -1,29 +1,47 @@
 <script setup lang="ts">
-import { ref, useTemplateRef } from 'vue';
+import { ref, useTemplateRef, watch } from 'vue';
+import { useRoute } from 'vue-router';
 
 import { parseVodFile, type VodFile } from '@/vodFile';
 
 import VodPlayer from '@/components/VodPlayer.vue';
 
-const TEST_VOD_FILE_URL = 'test_vod.txt';
+const TEST_VOD_FILE_URL = '/test_vod.txt';
 const vodFile = ref(null as VodFile | null);
-
 const vodFileInput = useTemplateRef<HTMLInputElement>('vodFileInput');
+
+const route = useRoute();
+watch(() => route.query, (query, oldQuery) => {
+    const { load } = query;
+    if (load && load !== oldQuery?.load) {
+        loadVodFromUrl(load as string);
+    }
+}, { immediate: true });
+
+function setVodFile(newVodFile: VodFile) {
+    vodFile.value = {
+        ...newVodFile,
+        vodVideoId: (route.query.vodVideoId as string | undefined) ?? newVodFile.vodVideoId,
+    };
+}
 
 async function loadVodFromUrl(url: string) {
     try {
+        vodFile.value = null;
+
         const response = await fetch(url);
         if (!response.ok) {
             throw new Error(`Response status: ${response.status}`);
         }
 
         const text = await response.text();
-        const newVodFile = parseVodFile(text);
+        const timeOffset = route.query.timeOffset ? parseInt(route.query.timeOffset as string, 10) / 1000 : undefined;
+        const newVodFile = parseVodFile(text, timeOffset);
         if (!newVodFile) {
             throw new Error(`Failed to parse VOD file ${url}`);
         }
 
-        vodFile.value = newVodFile;
+        setVodFile(newVodFile);
     } catch (error) {
         // TODO: Show error in the UI
         console.error(error);
@@ -35,6 +53,7 @@ async function loadVodFromFile() {
         return;
     }
     const file = vodFileInput.value.files[0];
+    vodFile.value = null;
 
     const contents: string = await new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -43,12 +62,13 @@ async function loadVodFromFile() {
         reader.readAsText(file);
     });
 
-    const newVodFile = parseVodFile(contents);
+    const timeOffset = route.query.timeOffset ? parseInt(route.query.timeOffset as string, 10) / 1000 : undefined;
+    const newVodFile = parseVodFile(contents, timeOffset);
     if (!newVodFile) {
         throw new Error(`Failed to parse VOD file ${file.name}`);
     }
 
-    vodFile.value = newVodFile;
+    setVodFile(newVodFile);
 }
 </script>
 

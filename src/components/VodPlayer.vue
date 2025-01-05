@@ -54,7 +54,9 @@ function tick(wasSeeking?: boolean) {
     }
 
     if (!props.vodFile) {
-        // TODO: Error handling
+        if (state.running) {
+            state.tickTimeout = setTimeout(tick, TICK_DELAY_MS);
+        }
         return;
     }
 
@@ -78,7 +80,9 @@ function tick(wasSeeking?: boolean) {
     }
 
     if (!moment) {
-        // TODO: Error handling
+        if (state.running) {
+            state.tickTimeout = setTimeout(tick, TICK_DELAY_MS);
+        }
         return;
     }
 

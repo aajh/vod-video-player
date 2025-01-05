@@ -4,6 +4,9 @@ Make it pretty
 CSS reset
 Ads?
 Debug mode
+Better error handling
+
+VOD watching link generator
 
 # Recorder
 Confirm dialog when closing the tab while recording
@@ -14,7 +17,6 @@ Solution for syncing the recording to the VOD
 # Player
 Handle events from both players (play/pause etc.)
 Load VOD file with drag and drop
-Load VOD file from an URL
-Link with VOD file URL
+Load VOD file from an URL through UI
 Remember play position
 Different layouts

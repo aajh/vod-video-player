@@ -32,7 +32,7 @@ enum ParserState {
     Timeline,
 }
 
-export function parseVodFile(fileContent: string): VodFile | null {
+export function parseVodFile(fileContent: string, timeOffsetOverrideSeconds?: number): VodFile | null {
     let state = ParserState.Header;
     const result: Partial<VodFile> = {};
     let vodFileVersion = null;
@@ -45,6 +45,9 @@ export function parseVodFile(fileContent: string): VodFile | null {
         if (trimmed === '') {
             if (state === ParserState.Header) {
                 state = ParserState.Timeline;
+                if (typeof timeOffsetOverrideSeconds === 'number') {
+                    timeOffset = timeOffsetOverrideSeconds;
+                }
             }
             continue;
         }
