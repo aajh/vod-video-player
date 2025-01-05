@@ -158,42 +158,45 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
 </script>
 
 <template>
-    <header class="top-nav">
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/watch">Watch</RouterLink>
-        <RouterLink to="/record">Record</RouterLink>
-    </header>
-    <div>
+    <div class="container">
         <form @submit.prevent="changeVideo">
             <label for="videoId">Youtube video ID</label>
             <input type="text" id="videoId" name="videoId" />
             <button type="submit">Change video</button>
         </form>
-        <div>
-            Current video ID {{videoId}}
-        </div>
 
-        <YoutubePlayer
-            ref="player"
-            element-id="player"
-            v-model:state="playerState"
-            @seek="onSeek"
-            :video-id
-            :width="640"
-            :height="390" />
         <div class="controls" :class="!!player || 'not-ready'">
             <button v-show="!isRecording && !recording.length" @click="start" type="button">Start</button>
             <button v-show="isRecording" @click="stop" type="button">Stop</button>
             <button v-show="!isRecording && recording.length" @click="save" type="button">Save</button>
+        </div>
+
+        <div ref="player-container" class="player-container">
+            <YoutubePlayer
+                ref="player"
+                element-id="player"
+                v-model:state="playerState"
+                @seek="onSeek"
+                :video-id
+                :width="640"
+                :height="390"
+            />
+        </div>
+
+
+        <div v-if="false">
             <div :class="{
                 active: playerState === PlayerState.Playing,
                 buffering: playerState === PlayerState.Buffering,
             }">
-                2nd player state {{PlayerState[playerState]}}
+                2nd player state {{ PlayerState[playerState] }}
+            </div>
+            <div>
+                Current video ID {{videoId}}
             </div>
         </div>
 
-        <table>
+        <table v-if="false">
             <thead>
                 <tr>
                     <th scope="col">VOD Time</th>
@@ -214,6 +217,27 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
 </template>
 
 <style scoped>
+.container {
+    display: grid;
+    width: 100vw;
+    height: 100vh;
+
+    padding: .75rem;
+    grid-gap: .75rem;
+
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+
+    align-items: center;
+}
+
+.player-container {
+    display: grid;
+    grid-template: 100% / 100%;
+    aspect-ratio: 16 / 9;
+    width: 100%;
+}
+
 .active {
     background-color: rgb(142, 251, 142);
 }

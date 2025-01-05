@@ -1,11 +1,5 @@
 <template>
     <div class="container">
-        <header class="top-nav">
-            <RouterLink to="/">Home</RouterLink>
-            <RouterLink to="/watch">Watch</RouterLink>
-            <RouterLink to="/record">Record</RouterLink>
-        </header>
-
         <main class="content">
             <h1>Home page</h1>
             <p>
@@ -22,21 +16,15 @@
 
 <style scoped>
 .container {
-    --padding: 2rem;
-
     display: flex;
     flex-direction: column;
-    padding: 0 var(--padding);
-}
-
-.top-nav {
-    margin-left: calc(-1 * var(--padding));
-    margin-right: calc(-1 * var(--padding));
+    margin-top: var(--top-nav-height);
+    padding: 0 2rem;
 }
 
 .content {
     max-width: var(--text-content-max-width);
-    margin: 0 auto;
+    margin: 2rem auto;
 }
 
 p {

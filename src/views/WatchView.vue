@@ -73,11 +73,6 @@ async function loadVodFromFile() {
 </script>
 
 <template>
-    <header class="top-nav">
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/watch">Watch</RouterLink>
-        <RouterLink to="/record">Record</RouterLink>
-    </header>
     <div class="vod-selector" v-show="!vodFile">
         <h2 class="vod-file-label">
             Select VOD file to watch
@@ -99,13 +94,9 @@ async function loadVodFromFile() {
 </template>
 
 <style scoped>
-.top-nav {
-    position: fixed;
-}
-
 .vod-selector {
     max-width: 600px;
-    margin: 8.5rem auto 0;
+    margin: calc(var(--top-nav-height) + 5rem) auto 0;
 }
 
 .vod-file-input-container {

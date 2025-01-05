@@ -1,8 +1,6 @@
 Playback speed support
 Test 2nd video ending
-Make it pretty
-CSS reset
-Ads?
+Are ads a problem?
 Debug mode
 Better error handling
 
@@ -15,8 +13,8 @@ Solution for syncing the recording to the VOD
     Visual (and audio?) cue when the recording starts?
 
 # Player
-Handle events from both players (play/pause etc.)
 Load VOD file with drag and drop
 Load VOD file from an URL through UI
-Remember play position
+UI for adding VOD video ID, if it's missing
 Different layouts
+Remember play position

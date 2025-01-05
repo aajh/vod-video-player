@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, reactive, ref, useTemplateRef, watch } from 'vue';
+import { onMounted, onUnmounted, reactive, ref, useTemplateRef, watch } from 'vue';
 
 import { MomentTag } from '@/vodFile';
 import type { Moment, VodFile } from '@/vodFile';
