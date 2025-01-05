@@ -70,7 +70,8 @@ body {
     min-width: 100%;
 }
 
-.visually-hidden {
+.visually-hidden,
+.sr-only:not(:focus):not(:active) {
     clip: rect(0 0 0 0);
     clip-path: inset(50%);
     height: 1px;
@@ -109,4 +110,12 @@ a,
     &:active {
         background-color: var(--color-button-active);
     }
+}
+
+input[type="text"] {
+    background-color: var(--color-background);
+    color: var(--color-text);
+    border: solid 1px var(--color-border);
+    border-radius: 0.5rem;
+    padding: 0.125rem 0.5rem;
 }

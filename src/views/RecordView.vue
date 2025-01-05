@@ -19,6 +19,7 @@ let recordingStart = 0;
 let syncIntervalId = 0;
 
 const videoId = ref<string | null>(null);
+const videoIdInput = useTemplateRef<HTMLInputElement>('video-id-input');
 
 interface RecordedMoment {
     time: number,
@@ -141,19 +142,18 @@ function stop() {
     player.value.pause();
 }
 
-function changeVideo(event: Event) {
-    if (!event.target) {
+function changeVideo() {
+    if (!videoIdInput.value) {
         return;
     }
 
-    const formData = new FormData(event.target as HTMLFormElement);
-    const newVideoIdEntry = formData.get('videoId');
-    if (!newVideoIdEntry) {
+    const newVideoId = videoIdInput.value.value;
+    if (!newVideoId) {
         return;
     }
 
-    const newVideoId = newVideoIdEntry as string;
     videoId.value = getVideoIdFromUrl(newVideoId) ?? newVideoId;
+    videoIdInput.value!.value = '';
 }
 
 function save() {
@@ -185,12 +185,23 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
 <template>
     <div class="container">
         <div class="controls" :class="!!player || 'not-ready'">
-            <button v-show="!isRecording && !recording.length" @click="start" class="button" type="button">Start</button>
-            <button v-show="isRecording" @click="stop" class="button" type="button">Stop</button>
-            <button v-show="!isRecording && recording.length" @click="save" class="button" type="button">Save</button>
+            <button v-show="!isRecording && !recording.length" @click="start" class="button" type="button">
+                Start recording
+            </button>
+            <button v-show="isRecording" @click="stop" class="button" type="button">
+                Stop recording
+            </button>
+            <button v-show="!isRecording && recording.length" @click="save" class="button" type="button">
+                Download
+            </button>
             <form class="video-change-form" @submit.prevent="changeVideo">
-                <label for="videoId">Youtube video ID</label>
-                <input type="text" id="videoId" name="videoId" />
+                <label class="sr-only" for="videoId">New Youtube video ID</label>
+                <input
+                    ref="video-id-input"
+                    type="text"
+                    id="videoId"
+                    name="videoId"
+                    placeholder="New Youtube video ID" />
                 <button class="button" type="submit">Change video</button>
             </form>
         </div>
