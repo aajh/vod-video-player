@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, useTemplateRef, watch } from 'vue';
+import { computed, ref, useTemplateRef, watch } from 'vue';
 
-import { MomentTag } from '@/vodFile';
+import { createFilenameTimestamp, MomentTag, saveToDisk, VOD_FILE_TEMPLATE } from '@/vodFile';
 
 import YoutubePlayer from '@/components/YoutubePlayer.vue';
 import { PlayerState, getVideoIdFromUrl } from '@/components/YoutubePlayer.vue';
@@ -23,6 +23,10 @@ interface RecordedMoment {
     argument?: string | number,
 }
 const recording = ref([] as RecordedMoment[]);
+const latestMoments = computed(() => {
+    const latest = recording.value.slice(-10);
+    return latest.reverse();
+});
 
 watch(playerState, (state, oldState) => {
     if (!player.value || !isRecording.value) {
@@ -127,6 +131,19 @@ function changeVideo(event: Event) {
     videoId.value = getVideoIdFromUrl(newVideoId) ?? newVideoId;
 }
 
+function save() {
+    let file = VOD_FILE_TEMPLATE;
+
+    for (const m of recording.value) {
+        const argument = m.argument !== undefined ? ` ${String(m.argument)}` : '';
+        const line = `${m.time} ${m.tag}${argument}\n`;
+        file = file.concat(line);
+    }
+
+    const filename = `vod_recording_${createFilenameTimestamp()}.txt`;
+    saveToDisk(filename, file);
+}
+
 function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
     if (!player.value || !isRecording.value) {
         return;
@@ -161,8 +178,9 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
             :height="390"
         />
         <div id="controls" :class="player || 'not-ready'">
-            <button v-show="!isRecording" type="button" @click="start">Start</button>
+            <button v-show="!isRecording && !recording.length" type="button" @click="start">Start</button>
             <button v-show="isRecording" type="button" @click="stop">Stop</button>
+            <button v-show="!isRecording && recording.length" @click="save">Save</button>
             <div :class="{
                 active: playerState === PlayerState.Playing,
                 buffering: playerState === PlayerState.Buffering,
@@ -181,7 +199,7 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="moment in recording" :key="moment.time">
+                <tr v-for="moment in latestMoments" :key="moment.time">
                     <td>{{moment.time}}</td>
                     <td>{{moment.tag}}</td>
                     <td>{{moment.argument}}</td>

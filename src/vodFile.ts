@@ -163,3 +163,22 @@ function parseTimelineMoments(timeline: FileMoment[]): Moment[] {
 
     return r;
 }
+
+export const VOD_FILE_TEMPLATE = 'vodFileVersion 1\nvodVideoId\ntimeOffset 0\n\n';
+
+export function createFilenameTimestamp() {
+    const now = new Date();
+    return now.toISOString().replaceAll(':', '.');
+}
+
+export function saveToDisk(filename: string, fileContents: string) {
+    const blob = new Blob([fileContents], { type: 'text/plain' });
+
+    const a = document.createElement('a');
+    a.download =filename;
+    a.href = URL.createObjectURL(blob);
+    a.textContent = 'Download ready';
+    a.style.display = 'none';
+    a.click();
+    a.remove();
+}
