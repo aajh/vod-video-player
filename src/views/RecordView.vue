@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useTemplateRef, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
 
 import { createFilenameTimestamp, MomentTag, saveToDisk, VOD_FILE_TEMPLATE } from '@/vodFile';
 
@@ -7,8 +7,11 @@ import YoutubePlayer from '@/components/YoutubePlayer.vue';
 import { PlayerState, getVideoIdFromUrl } from '@/components/YoutubePlayer.vue';
 
 const RECORING_SYNC_INTERVAL_MS = 5000;
+const RESIZE_INTERVAL_MS = 10;
 
 const player = useTemplateRef<typeof YoutubePlayer>('player');
+const playerContainer = useTemplateRef<HTMLElement>('player-container');
+const playerSize = ref(new DOMRect(0, 0, 640, 390));
 const playerState = ref(PlayerState.Unstarted);
 
 const isRecording = ref(false);
@@ -50,6 +53,28 @@ watch(videoId, () => {
         recordMoment(MomentTag.CueVideo, videoId.value);
     }
 });
+
+// TODO: Combine this code with the one with VodPlayer.vue
+let sizeInterval = 0;
+onMounted(() => {
+    updatePlayerSizes()
+    if (sizeInterval) {
+        clearInterval(sizeInterval);
+        sizeInterval = 0;
+    }
+    sizeInterval = setInterval(updatePlayerSizes, RESIZE_INTERVAL_MS);
+});
+onUnmounted(() => {
+    if (sizeInterval) {
+        clearInterval(sizeInterval);
+        sizeInterval = 0;
+    }
+});
+function updatePlayerSizes() {
+    // TODO: Attach size update to window size event
+    playerSize.value = playerContainer.value?.getBoundingClientRect?.() ?? playerSize.value;
+    playerSize.value = playerContainer.value?.getBoundingClientRect?.() ?? playerSize.value;
+}
 
 function onSeek() {
     if (!player.value || !isRecording.value) {
@@ -159,28 +184,30 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
 
 <template>
     <div class="container">
-        <form @submit.prevent="changeVideo">
-            <label for="videoId">Youtube video ID</label>
-            <input type="text" id="videoId" name="videoId" />
-            <button type="submit">Change video</button>
-        </form>
-
         <div class="controls" :class="!!player || 'not-ready'">
             <button v-show="!isRecording && !recording.length" @click="start" type="button">Start</button>
             <button v-show="isRecording" @click="stop" type="button">Stop</button>
             <button v-show="!isRecording && recording.length" @click="save" type="button">Save</button>
+            <form class="video-change-form" @submit.prevent="changeVideo">
+                <label for="videoId">Youtube video ID</label>
+                <input type="text" id="videoId" name="videoId" />
+                <button type="submit">Change video</button>
+            </form>
         </div>
 
-        <div ref="player-container" class="player-container">
-            <YoutubePlayer
-                ref="player"
-                element-id="player"
-                v-model:state="playerState"
-                @seek="onSeek"
-                :video-id
-                :width="640"
-                :height="390"
-            />
+        <div class="player-container-outer">
+            <div class="player-container-middle">
+                <div ref="player-container" class="player-container-inner">
+                    <YoutubePlayer
+                        ref="player"
+                        element-id="player"
+                        v-model:state="playerState"
+                        @seek="onSeek"
+                        :video-id
+                        :width="playerSize.width"
+                        :height="playerSize.height" />
+                </div>
+            </div>
         </div>
 
 
@@ -217,25 +244,58 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
 </template>
 
 <style scoped>
-.container {
-    display: grid;
-    width: 100vw;
-    height: 100vh;
-
-    padding: .75rem;
-    grid-gap: .75rem;
-
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
-
+.controls {
+    display: flex;
+    gap: 2rem;
     align-items: center;
 }
 
-.player-container {
+.video-change-form {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.container {
+    --margin-top: calc(var(--top-nav-height));
+
     display: grid;
-    grid-template: 100% / 100%;
+    width: 100vw;
+    height: calc(100vh - var(--margin-top));
+
+    margin-top: var(--margin-top);
+    padding: 1.5rem;
+    padding-top: 0.5rem;
+    grid-gap: 1rem;
+
+    grid-template-columns: 100%;
+    grid-template-rows: auto 1fr;
+
+    align-items: center;
+    justify-items: center;
+}
+
+/* TODO: Extract this and use this in VodPLayer.vue */
+.player-container-outer {
+    display: grid;
+    aspect-ratio: 16 / 9;
+    height: 100%;
+    max-width: 100%;
+    grid-template: 1fr / 100%;
+    align-items: center;
+}
+
+.player-container-middle {
+    position: relative;
     aspect-ratio: 16 / 9;
     width: 100%;
+    max-height: 100%;
+}
+
+.player-container-inner {
+    position: absolute;
+    width: 100%;
+    height: 100%;
 }
 
 .active {
