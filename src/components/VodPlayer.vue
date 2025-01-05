@@ -65,7 +65,6 @@ function tick(wasSeeking?: boolean) {
             switch (moment?.tag) {
                 case MomentTag.Seek:
                 case MomentTag.Play:
-                case MomentTag.Pause:
                     if (secondPlayerState.value !== PlayerState.Unstarted && secondPlayerState.value !== PlayerState.Cued) {
                         secondPlayer.value!.seekTo(moment.secondTime);
                     }
