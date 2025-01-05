@@ -86,7 +86,7 @@ async function loadVodFromFile() {
                 name="vodFile"
                 @change="loadVodFromFile"
             />
-            <button type="button" @click="vodFileInput?.click?.()">Select VOD file</button>
+            <button class="button" ype="button" @click="vodFileInput?.click?.()">Select VOD file</button>
         </div>
         <button v-if="false" @click="loadVodFromUrl(TEST_VOD_FILE_URL)" type="button">Load test VOD</button>
     </div>

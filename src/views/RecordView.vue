@@ -185,13 +185,13 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
 <template>
     <div class="container">
         <div class="controls" :class="!!player || 'not-ready'">
-            <button v-show="!isRecording && !recording.length" @click="start" type="button">Start</button>
-            <button v-show="isRecording" @click="stop" type="button">Stop</button>
-            <button v-show="!isRecording && recording.length" @click="save" type="button">Save</button>
+            <button v-show="!isRecording && !recording.length" @click="start" class="button" type="button">Start</button>
+            <button v-show="isRecording" @click="stop" class="button" type="button">Stop</button>
+            <button v-show="!isRecording && recording.length" @click="save" class="button" type="button">Save</button>
             <form class="video-change-form" @submit.prevent="changeVideo">
                 <label for="videoId">Youtube video ID</label>
                 <input type="text" id="videoId" name="videoId" />
-                <button type="submit">Change video</button>
+                <button class="button" type="submit">Change video</button>
             </form>
         </div>
 
