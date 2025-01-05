@@ -1,5 +1,4 @@
 Playback speed support
-Test 2nd video ending
 Are ads a problem?
 Debug mode
 Better error handling
@@ -19,3 +18,4 @@ Load VOD file from an URL through UI
 UI for adding VOD video ID, if it's missing
 Different layouts
 Remember play position
+Fix flash when following a VOD link

@@ -1,5 +1,7 @@
 vodFileVersion 1
-vodVideoId dQw4w9WgXcQ
+vodVideoId M7lc1UVf-VE
 timeOffset 100
 
 200 loadVideo xvFZjo5PgG0
+3500 seek 500
+8641 pause 5641

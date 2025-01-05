@@ -89,6 +89,13 @@ defineExpose({
 
         return player.getCurrentTime();
     },
+    getDuration() {
+        if (!player) {
+            return 0;
+        }
+
+        return player.getDuration();
+    },
     getVideoId,
     play() {
         if (!player) {

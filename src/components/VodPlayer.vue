@@ -53,68 +53,75 @@ function tick(wasSeeking?: boolean) {
         return;
     }
 
-    if (!wasSeeking) {
-        state.time = vodPlayer.value!.getCurrentTime();
-    }
+    try {
+        if (!wasSeeking) {
+            state.time = vodPlayer.value?.getCurrentTime?.() ?? 0;
+        }
 
-    if (!props.vodFile) {
+        if (!props.vodFile) {
+            return;
+        }
+
+        const momentIndex = getMomentIndex(props.vodFile.timeline, state.time);
+        const moment = momentIndex !== null ? props.vodFile.timeline[momentIndex] : null;
+        if (moment !== state.currentMoment) {
+            switch (moment?.tag) {
+                case MomentTag.Seek:
+                case MomentTag.Play:
+                case MomentTag.Pause:
+                    if (secondPlayerState.value !== PlayerState.Unstarted && secondPlayerState.value !== PlayerState.Cued) {
+                        secondPlayer.value!.seekTo(moment.secondTime);
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            state.currentMoment = moment;
+            state.currentMomentIndex = momentIndex;
+        }
+
+        if (!moment) {
+            return;
+        }
+
+        const secondVideoExpectedTime = getSecondVideoTime(state.time, moment);
+        const secondVideoDuration = secondPlayer.value!.getDuration();
+        const secondVideoCurrentTime = secondPlayer.value!.getCurrentTime();
+        if (secondVideoDuration && secondVideoExpectedTime > secondVideoDuration) {
+            if (secondPlayerState.value === PlayerState.Playing || secondPlayerState.value === PlayerState.Buffering) {
+                secondPlayer.value!.pause();
+            }
+            if (secondVideoCurrentTime !== secondVideoDuration) {
+                secondPlayer.value!.seekTo(secondVideoDuration);
+            }
+            return;
+        }
+
+        const isSecondVideoPlaying = secondPlayerState.value === PlayerState.Playing;
+        if (state.running && moment.playing) {
+            if (!isSecondVideoPlaying) {
+                secondPlayer.value!.play();
+            }
+        } else if (isSecondVideoPlaying) {
+            secondPlayer.value!.pause();
+        }
+
+        if (vodPlayerState.value === PlayerState.Buffering && isSecondVideoPlaying) {
+            secondPlayer.value!.pause();
+        }
+
+        if (Math.abs(secondVideoExpectedTime - secondVideoCurrentTime) > PLAYBACK_SYNC_TOLERANCE_S) {
+            const now = Date.now();
+            if (!state.lastSyncTime || now - state.lastSyncTime > PLAYBACK_SYNC_TIMEOUT_MS) {
+                secondPlayer.value!.seekTo(secondVideoExpectedTime);
+                state.lastSyncTime = now;
+            }
+        }
+    } finally {
         if (state.running) {
             state.tickTimeout = setTimeout(tick, TICK_DELAY_MS);
         }
-        return;
-    }
-
-    const momentIndex = getMomentIndex(props.vodFile.timeline, state.time);
-    const moment = momentIndex !== null ? props.vodFile.timeline[momentIndex] : null;
-    if (moment !== state.currentMoment) {
-        switch (moment?.tag) {
-            case MomentTag.Seek:
-            case MomentTag.Play:
-            case MomentTag.Pause:
-                if (secondPlayerState.value !== PlayerState.Unstarted && secondPlayerState.value !== PlayerState.Cued) {
-                    secondPlayer.value!.seekTo(moment.secondTime);
-                }
-                break;
-            default:
-                break;
-        }
-
-        state.currentMoment = moment;
-        state.currentMomentIndex = momentIndex;
-    }
-
-    if (!moment) {
-        if (state.running) {
-            state.tickTimeout = setTimeout(tick, TICK_DELAY_MS);
-        }
-        return;
-    }
-
-    const isSecondVideoPlaying = secondPlayerState.value === PlayerState.Playing;
-    if (state.running && moment.playing) {
-        if (!isSecondVideoPlaying) {
-            secondPlayer.value!.play();
-        }
-    } else if (isSecondVideoPlaying) {
-        secondPlayer.value!.pause();
-    }
-
-    if (vodPlayerState.value === PlayerState.Buffering && isSecondVideoPlaying) {
-        secondPlayer.value!.pause();
-    }
-
-    const secondVideoExpectedTime = getSecondVideoTime(state.time, moment);
-    const secondVideoCurrentTime = secondPlayer.value!.getCurrentTime();
-    if (Math.abs(secondVideoExpectedTime - secondVideoCurrentTime) > PLAYBACK_SYNC_TOLERANCE_S) {
-        const now = Date.now();
-        if (!state.lastSyncTime || now - state.lastSyncTime > PLAYBACK_SYNC_TIMEOUT_MS) {
-            secondPlayer.value!.seekTo(secondVideoExpectedTime);
-            state.lastSyncTime = now;
-        }
-    }
-
-    if (state.running) {
-        state.tickTimeout = setTimeout(tick, TICK_DELAY_MS);
     }
 }
 

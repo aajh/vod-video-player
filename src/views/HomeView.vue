@@ -34,10 +34,12 @@
                 An example VOD file looks like this (<RouterLink to="/watch?load=%2Fexample_vod.txt">demo link</RouterLink>):
                 <pre>
 vodFileVersion 1
-vodVideoId dQw4w9WgXcQ
+vodVideoId M7lc1UVf-VE
 timeOffset 100
 
-200 loadVideo xvFZjo5PgG0</pre>
+200 loadVideo xvFZjo5PgG0
+3500 seek 500
+8641 pause 5641</pre>
             </p>
             <p>
                 Along with pausing and unpausing, video changes and seeks are also recorder.
