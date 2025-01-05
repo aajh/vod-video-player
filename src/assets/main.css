@@ -109,6 +109,11 @@ a,
     &:active {
         background-color: var(--color-button-active);
     }
+
+    &:disabled {
+        cursor: initial;
+        opacity: 0.15;
+    }
 }
 
 input[type="text"] {

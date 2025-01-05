@@ -3,7 +3,7 @@ Are ads a problem?
 Debug mode
 Better error handling
 
-VOD watching link generator
+VOD watching link generator link copy button
 
 # Recorder
 Fix control clipping with the navigation
@@ -14,8 +14,8 @@ Solution for syncing the recording to the VOD
 
 # Player
 Load VOD file with drag and drop
-Load VOD file from an URL through UI
 UI for adding VOD video ID, if it's missing
 Different layouts
 Remember play position
-Fix flash when following a VOD link
+Fix the flash when following a VOD link
+Change the address when loading VOD from an URL

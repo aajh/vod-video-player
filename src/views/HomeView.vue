@@ -10,10 +10,11 @@
             </p>
             <p>
                 To start watching, select the VOD sync file from your local
-                files and unpause the VOD from the left player.
+                files or from a link URL and unpause the VOD from the left player
+                to start watching.
             </p>
             <p>
-                Unfortunately there are some Youtube interfaces that can't be disabled, so
+                Unfortunately, there are some Youtube interfaces that can't be disabled, so
                 for example, the recommendation interface needs to be closed once per playback.
             </p>
 
@@ -28,11 +29,11 @@
                 After you have uploaded the VOD to Youtube, open the VOD sync file and put
                 its ID after <code>vodVideoId</code> and adjust the <code>timeOffset</code>
                 (milliseconds) to sync the VOD start to the sync recording start.
-
             </p>
             <p>
                 An example VOD file looks like this (<RouterLink to="/watch?load=%2Fexample_vod.txt">demo link</RouterLink>):
-                <pre>
+            </p>
+            <pre>
 vodFileVersion 1
 vodVideoId M7lc1UVf-VE
 timeOffset 100
@@ -40,14 +41,13 @@ timeOffset 100
 200 loadVideo xvFZjo5PgG0
 3500 seek 500
 8641 pause 5641</pre>
-            </p>
             <p>
                 Along with pausing and unpausing, video changes and seeks are also recorder.
                 To make seeks shorter than one second, the video should be paused, after which
                 the video can be moved even frame by frame. (Playback speed adjustment is not yet supported.)
             </p>
             <p>
-                The feature set is very bare-bones, and there are probably many bugs and incoveniences.
+                The feature set is very bare-bones, and there are probably many bugs and inconveniences.
             </p>
         </main>
     </div>
@@ -74,7 +74,7 @@ p {
 }
 
 pre {
-    margin-top: 0.5rem;
+    margin: 0.5rem 0 1.25rem;
     background: var(--color-background-soft);
     border-radius: 0.5rem;
     padding: 1rem;
