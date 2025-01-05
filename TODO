@@ -13,5 +13,8 @@ Solution for syncing the recording to the VOD
 
 # Player
 Handle events from both players (play/pause etc.)
+Load VOD file with drag and drop
+Load VOD file from an URL
+Link with VOD file URL
 Remember play position
 Different layouts

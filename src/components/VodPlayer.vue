@@ -245,9 +245,9 @@ watch(() => props.vodFile, () => {
             :video-id="state.currentMoment?.videoId ?? null"
         />
         <div id="controls" :class="ready || 'not-ready'">
-            <button v-show="!state.running" type="button" @click="play">Play</button>
-            <button v-show="state.running" type="button" @click="pause">Pause</button>
-            <button :disabled="state.time === 0" type="button" @click="stop">Stop</button>
+            <button v-show="!state.running" @click="play" type="button">Play</button>
+            <button v-show="state.running" @click="pause" type="button">Pause</button>
+            <button :disabled="state.time === 0" @click="stop" type="button">Stop</button>
             <div>
                 Time {{state.time}}
             </div>

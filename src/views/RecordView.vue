@@ -178,9 +178,9 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
             :height="390"
         />
         <div id="controls" :class="player || 'not-ready'">
-            <button v-show="!isRecording && !recording.length" type="button" @click="start">Start</button>
-            <button v-show="isRecording" type="button" @click="stop">Stop</button>
-            <button v-show="!isRecording && recording.length" @click="save">Save</button>
+            <button v-show="!isRecording && !recording.length" @click="start" type="button">Start</button>
+            <button v-show="isRecording" @click="stop" type="button">Stop</button>
+            <button v-show="!isRecording && recording.length" @click="save" type="button">Save</button>
             <div :class="{
                 active: playerState === PlayerState.Playing,
                 buffering: playerState === PlayerState.Buffering,
