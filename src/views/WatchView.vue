@@ -15,11 +15,12 @@ const TEST_VOD_FILE_URL = 'test_vod.txt';
 
 const defaultState = {
     running: false,
-    tickTimeout: null   as number | null,
+    tickTimeout: null           as number | null,
     time: 0,
-    vodFile: null       as VodFile | null,
-    currentMoment: null as Moment | null,
-    lastSyncTime: null  as number | null,
+    vodFile: null               as VodFile | null,
+    currentMoment: null         as Moment | null,
+    currentMomentIndex: null    as number | null,
+    lastSyncTime: null          as number | null,
 };
 const state = reactive(Object.assign({}, defaultState));
 
@@ -43,38 +44,41 @@ function onReady() {
     loadVod(TEST_VOD_FILE_URL);
 }
 
-function tick() {
+function tick(wasSeeking?: boolean) {
     if (!ready.value) {
         return;
     }
 
-    state.time = vodPlayer.value!.getCurrentTime();
+    if (!wasSeeking) {
+        state.time = vodPlayer.value!.getCurrentTime();
+    }
 
     if (!state.vodFile) {
-        // TODO
+        // TODO: Error handling
         return;
     }
 
-    const moment = getMoment(state.vodFile.timeline, state.time);
+    const momentIndex = getMomentIndex(state.vodFile.timeline, state.time);
+    const moment = momentIndex !== null ? state.vodFile.timeline[momentIndex] : null;
     if (moment !== state.currentMoment) {
         switch (moment?.tag) {
             case MomentTag.Seek:
             case MomentTag.Play:
             case MomentTag.Pause:
-                secondPlayer.value!.seekTo(moment.secondTime);
-                break;
-            case MomentTag.Stop:
-                stop();
+                if (secondPlayerState.value !== PlayerState.Unstarted && secondPlayerState.value !== PlayerState.Cued) {
+                    secondPlayer.value!.seekTo(moment.secondTime);
+                }
                 break;
             default:
                 break;
         }
 
         state.currentMoment = moment;
+        state.currentMomentIndex = momentIndex;
     }
 
     if (!moment) {
-        // TODO
+        // TODO: Error handling
         return;
     }
 
@@ -111,17 +115,27 @@ function getSecondVideoTime(currentTime: number, moment: Moment) {
     return secondTime + (playing ? currentTime - time : 0);
 }
 
-function getMoment(timeline: Moment[], time: number) {
-    let moment = null;
-    for (const m of timeline) {
-        if (m.time > time) {
+function getMomentIndex(timeline: Moment[], time: number) {
+    let momentIndex = state.currentMomentIndex;
+    if (momentIndex !== null && (momentIndex >= timeline.length || timeline[momentIndex].time > time)) {
+        momentIndex = null;
+    }
+
+    while (true) {
+        const nextMomentIndex = momentIndex !== null ? momentIndex + 1 : 0;
+        if (nextMomentIndex >= timeline.length) {
             break;
         }
 
-        moment = m;
+        const nextMoment = timeline[nextMomentIndex];
+        if (nextMoment.time > time) {
+            break;
+        }
+
+        momentIndex = nextMomentIndex;
     }
 
-    return moment;
+    return momentIndex;
 }
 
 function play() {
@@ -160,19 +174,16 @@ function stop() {
 
     pause();
     state.currentMoment = null;
+    state.currentMomentIndex = null;
     state.time = 0;
     vodPlayer.value!.stop();
     secondPlayer.value!.stop();
-    // TODO
-    //this.secondPlayer.videoId = null;
 }
 
-function seek(time: number, shouldPlay = false) {
+async function seek(time: number) {
     if (!ready.value) {
         return;
     }
-
-    console.log('seek', time);
 
     if (vodPlayerState.value === PlayerState.Cued) {
         vodPlayer.value!.play();
@@ -185,15 +196,11 @@ function seek(time: number, shouldPlay = false) {
         vodPlayer.value!.pause();
     }
 
-    if (shouldPlay) {
-        play();
-    } else {
-        if (state.tickTimeout) {
-            clearTimeout(state.tickTimeout);
-            state.tickTimeout = null;
-        }
-        tick();
+    if (state.tickTimeout) {
+        clearTimeout(state.tickTimeout);
+        state.tickTimeout = null;
     }
+    tick(true);
 }
 
 async function loadVod(url: string) {
@@ -240,8 +247,8 @@ watch(vodPlayerState, newState => {
             element-id="vod-player"
             v-model:state="vodPlayerState"
             @ready="onReady"
-            :width="320"
-            :height="195"
+            :width="640"
+            :height="390"
             :video-id="state.vodFile?.vodVideoId ?? null"
         />
         <YoutubePlayer
@@ -249,13 +256,8 @@ watch(vodPlayerState, newState => {
             element-id="second-player"
             v-model:state="secondPlayerState"
             @ready="onReady"
-            :width="320"
-            :height="195"
-            :player-vars="{
-                playsinline: 1,
-                controls: 0,
-                disablekb: 1,
-            }"
+            :width="640"
+            :height="390"
             :video-id="state.currentMoment?.videoId ?? null"
         />
         <div id="controls" :class="ready || 'not-ready'">
@@ -293,7 +295,7 @@ watch(vodPlayerState, newState => {
                     v-for="moment in state.vodFile?.timeline ?? []"
                     :key="moment.time"
                     :class="moment === state.currentMoment ? 'active' : ''"
-                    @click="seek(moment.time, true)">
+                    @click="seek(moment.time)">
                     <td>{{moment.time}}</td>
                     <td>{{moment.secondTime}}</td>
                     <td>{{moment.tag}}</td>

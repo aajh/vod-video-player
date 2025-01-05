@@ -1,5 +1,5 @@
 {
-    "name": "my-vue-app",
+    "name": "vod-video-player",
     "version": "0.0.0",
     "private": true,
     "type": "module",

@@ -112,9 +112,7 @@ onMounted(async () => {
     const p = new YT.Player(props.elementId, {
         height: props.height,
         width: props.width,
-        playerVars: {
-            playsinline: 1,
-        },
+        playerVars: props.playerVars,
         events: {
             onReady: () => {
                 player = p;

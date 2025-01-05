@@ -1,12 +1,16 @@
+Playback speed support
+Url instead of id
+Make it pretty
+CSS reset
+
+# Recorder
 Way to save the recording
 Confirm dialog when exiting
 Confirm recording stop
 Solution for syncing the recording to the VOD
 
+# Player
 Parse second video ID from player.getVideoUrl to make sure correct video is playing
-Controls for the second video
 Handle events from both players (play/pause etc.)
 Remember play position
-
-Make it pretty
-CSS reset
+Different layouts

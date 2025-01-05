@@ -3,7 +3,6 @@ export enum MomentTag {
     LoadVideo = 'loadVideo',
     Play = 'play',
     Pause = 'pause',
-    Stop = 'stop',
     Seek = 'seek',
     Sync = 'sync',
 }
@@ -135,10 +134,6 @@ function parseTimelineMoments(timeline: FileMoment[]): Moment[] {
                 if (argument) {
                     argument = parseInt(argument, 10) / 1000;
                 }
-                break;
-            case MomentTag.Stop:
-                secondTime = 0;
-                playing = false;
                 break;
             case MomentTag.Seek:
             case MomentTag.Sync:
