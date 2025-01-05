@@ -34,10 +34,10 @@
     --color-heading: var(--vt-c-text-dark-1);
     --color-text: var(--vt-c-text-dark-2);
 
-    --color-link: hsla(160, 100%, 37%, 1);
+    --color-link: hsl(160, 100%, 37%);
     --color-link-hover-background: hsla(160, 100%, 37%, 0.2);;
 
-    --color-button: hsl(160, 100%, 36%);
+    --color-button: hsl(160, 100%, 37%);
     --color-button-hover: hsl(160, 100%, 45%);
     --color-button-active: hsl(160, 100%, 65%);
     --color-button-text: hsl(0, 0%, 16%);

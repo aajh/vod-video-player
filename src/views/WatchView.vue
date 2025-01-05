@@ -60,11 +60,7 @@ function setVodFile(newVodFile: VodFile) {
     };
 }
 
-async function loadVodFromFile() {
-    if (!vodFileInput.value?.files?.length) {
-        return;
-    }
-    const file = vodFileInput.value.files[0];
+async function loadVodFromFile(file: File) {
     vodFile.value = null;
 
     const contents: string = await new Promise((resolve, reject) => {
@@ -82,6 +78,23 @@ async function loadVodFromFile() {
 
     setVodFile(newVodFile);
 }
+
+function onFileChange() {
+    if (!vodFileInput.value?.files?.length) {
+        return;
+    }
+    const file = vodFileInput.value.files[0];
+    loadVodFromFile(file);
+}
+
+const dragHover = ref(false);
+
+function onDrop(event: DragEvent) {
+    const file = event.dataTransfer?.files?.[0];
+    if (file) {
+        loadVodFromFile(file);
+    }
+}
 </script>
 
 <template>
@@ -89,18 +102,25 @@ async function loadVodFromFile() {
         <h2 class="vod-file-label">
             Select VOD file to watch
         </h2>
-        <div class="vod-file-input-container">
+        <div
+            class="vod-file-input-container"
+            :class="dragHover && 'drag-hover'"
+            @click="vodFileInput?.click?.()"
+            @drop.prevent="onDrop"
+            @dragenter="dragHover = true"
+            @dragleave="dragHover = false"
+            @dragover.prevent>
             <input
                 ref="vodFileInput"
                 class="visually-hidden"
                 type="file"
                 id="vodFile"
                 name="vodFile"
-                @change="loadVodFromFile"
-            />
-            <button class="button" ype="button" @click="vodFileInput?.click?.()">Select VOD file</button>
+                @change="onFileChange" />
+            <button class="button" type="button" @click.stop="vodFileInput?.click?.()">
+                Select VOD file
+            </button>
         </div>
-        <p>(No drag & drop yet)</p>
 
         <form class="url-form" @submit.prevent="loadVodFromUrl(vodFileUrl)">
             <div class="vod-url-row">
@@ -120,11 +140,6 @@ async function loadVodFromFile() {
 .vod-selector {
     max-width: 600px;
     margin: calc(var(--top-nav-height) + 5rem) auto 0;
-
-    p {
-        margin-top: 0.5rem;
-        text-align: center;
-    }
 }
 
 .vod-file-input-container {
@@ -138,6 +153,10 @@ async function loadVodFromFile() {
     border-radius: 1rem;
     border: .1875rem dashed rgb(16, 16, 16);
     background-color: var(--color-background-mute);
+
+    &.drag-hover {
+        background-color: hsl(160, 100%, 28%);
+    }
 }
 
 .url-form {

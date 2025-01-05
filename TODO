@@ -13,7 +13,6 @@ Solution for syncing the recording to the VOD
     Visual (and audio?) cue when the recording starts?
 
 # Player
-Load VOD file with drag and drop
 UI for adding VOD video ID, if it's missing
 Different layouts
 Remember play position
