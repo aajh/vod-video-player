@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, useTemplateRef } from 'vue';
 import { useRoute } from 'vue-router';
 
-import { parseVodFile, type VodFile } from '@/vodFile';
+import { ParseError, parseVodFile, type VodFile } from '@/vodFile';
 
 import VodPlayer from '@/components/VodPlayer.vue';
 
@@ -10,19 +10,14 @@ const TEST_VOD_FILE_URL = '/test_vod.txt';
 
 const route = useRoute();
 
-class ParseError extends Error {
-    constructor(vodFilename: string) {
-        super(`Failed to parse VOD file ${vodFilename}`);
-        this.name = 'ParseError';
-    }
-}
-
 const loadErrorMessage = ref('');
+const loadErrorDetail = ref('');
 function setLoadErrorMessage(error: unknown) {
         console.error(error);
         loadErrorMessage.value = error instanceof ParseError
             ? 'Error while parsing the VOD file'
             : 'Error while loading the VOD file';
+        loadErrorDetail.value = error instanceof Error ? error.message : String(error);
 }
 
 const vodFileUrl = ref('');
@@ -53,10 +48,10 @@ async function loadVodFromUrl(url: string) {
 
         const text = await response.text();
         const timeOffset = route.query.timeOffset ? parseInt(route.query.timeOffset as string, 10) / 1000 : undefined;
-        const newVodFile = parseVodFile(text, timeOffset);
-        if (!newVodFile) {
-            throw new ParseError(url);
-        }
+        const newVodFile = parseVodFile(text, {
+            filename: url,
+            timeOffsetOverrideSeconds: timeOffset,
+        });
 
         setVodFile(newVodFile);
     } catch (error) {
@@ -85,10 +80,10 @@ async function loadVodFromFile(file: File) {
     });
 
     const timeOffset = route.query.timeOffset ? parseInt(route.query.timeOffset as string, 10) / 1000 : undefined;
-    const newVodFile = parseVodFile(contents, timeOffset);
-    if (!newVodFile) {
-        throw new ParseError(file.name);
-    }
+    const newVodFile = parseVodFile(contents, {
+        filename: file.name,
+        timeOffsetOverrideSeconds: timeOffset,
+    });
 
     setVodFile(newVodFile);
 }
@@ -108,11 +103,12 @@ async function onFileChange() {
 
 const dragHover = ref(false);
 
-function onDrop(event: DragEvent) {
+async function onDrop(event: DragEvent) {
     try {
+        dragHover.value = false;
         const file = event.dataTransfer?.files?.[0];
         if (file) {
-            loadVodFromFile(file);
+            await loadVodFromFile(file);
         }
     } catch (error) {
         setLoadErrorMessage(error);
@@ -157,7 +153,10 @@ function onDrop(event: DragEvent) {
         <button v-if="false" @click="loadVodFromUrl(TEST_VOD_FILE_URL)" type="button">Load test VOD</button>
 
         <div class="error-container" v-show="loadErrorMessage">
-            <div class="error-message">{{ loadErrorMessage }}</div>
+            <div class="error-message">
+                <p>{{ loadErrorMessage }}</p>
+                <p class="error-message-detail">{{ loadErrorDetail }}</p>
+            </div>
             <button class="error-close-button" type="button" @click="loadErrorMessage = ''">
                 <span>&#x00D7;</span>
             </button>
@@ -266,5 +265,10 @@ function onDrop(event: DragEvent) {
 
     font-size: 1.375rem;
     font-weight: 600;
+}
+
+.error-message-detail {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
 }
 </style>

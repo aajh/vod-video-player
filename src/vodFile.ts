@@ -20,6 +20,16 @@ export interface VodFile {
     timeline: Moment[];
 }
 
+export class ParseError extends Error {
+    filename?: string;
+
+    constructor(message: string, filename?: string) {
+        super(message);
+        this.name = 'ParseError';
+        this.filename = filename;
+    }
+}
+
 
 const VOD_PARSER_VERSION = '1';
 const WHITESPACE_REGEX = /\s+/;
@@ -32,7 +42,12 @@ enum ParserState {
     Timeline,
 }
 
-export function parseVodFile(fileContent: string, timeOffsetOverrideSeconds?: number): VodFile | null {
+export interface ParseOptions {
+    filename?: string;
+    timeOffsetOverrideSeconds?: number;
+}
+
+export function parseVodFile(fileContent: string, options: ParseOptions = {}): VodFile {
     let state = ParserState.Header;
     const result: Partial<VodFile> = {};
     let vodFileVersion = null;
@@ -45,8 +60,8 @@ export function parseVodFile(fileContent: string, timeOffsetOverrideSeconds?: nu
         if (trimmed === '') {
             if (state === ParserState.Header) {
                 state = ParserState.Timeline;
-                if (typeof timeOffsetOverrideSeconds === 'number') {
-                    timeOffset = timeOffsetOverrideSeconds;
+                if (typeof options?.timeOffsetOverrideSeconds === 'number') {
+                    timeOffset = options.timeOffsetOverrideSeconds;
                 }
             }
             continue;
@@ -82,16 +97,16 @@ export function parseVodFile(fileContent: string, timeOffsetOverrideSeconds?: nu
     }
 
     if (vodFileVersion !== VOD_PARSER_VERSION) {
-        console.error(`Unsupported VOD file version ${vodFileVersion}. Expected version ${VOD_PARSER_VERSION}.`);
-        return null;
+        const message = `Unsupported VOD file version ${vodFileVersion}. Expected version ${VOD_PARSER_VERSION}.`;
+        throw new ParseError(message, options.filename);
     }
     if (!result.vodVideoId) {
-        console.error('File had no VOD id');
-        return null;
+        const message = 'File has no VOD id';
+        throw new ParseError(message, options.filename);
     }
     if (state !== ParserState.Timeline) {
-        console.error('File did not contain a timeline');
-        return null;
+        const message = 'File does not contain a timeline';
+        throw new ParseError(message, options.filename);
     }
 
     result.timeline = parseTimelineMoments(rawTimeline);
