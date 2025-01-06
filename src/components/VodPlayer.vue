@@ -310,16 +310,16 @@ watch(() => props.vodFile, () => {
 .container {
     display: grid;
     width: 100vw;
-    height: 100vh;
-    margin-top: calc(-1* var(--toolbar-height));
+    height: calc(100vh - var(--toolbar-height));
 
     padding: .75rem;
-    grid-gap: .75rem;
+    grid-gap: 0 .75rem;
 
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-rows: 1fr;
 
     align-items: center;
+    justify-items: center;
 }
 
 .active {
@@ -333,5 +333,11 @@ watch(() => props.vodFile, () => {
 .not-ready {
     pointer-events: none;
     opacity: 0.4;
+}
+
+@media (max-aspect-ratio: 2.6) and (min-width: 800px) {
+    .container {
+        grid-template-rows: 1fr var(--toolbar-height);
+    }
 }
 </style>

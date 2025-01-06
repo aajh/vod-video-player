@@ -11,7 +11,9 @@ import { RouterView } from 'vue-router'
                 <RouterLink to="/record">Record</RouterLink>
             </nav>
         </header>
-        <RouterView />
+        <div class="content">
+            <RouterView />
+        </div>
     </div>
 </template>
 
@@ -31,7 +33,6 @@ import { RouterView } from 'vue-router'
     grid-template-columns: minmax(var(--nav-width), 1fr) minmax(0, 2fr) minmax(var(--nav-width), 1fr);
     padding-top: 0.5rem;
     grid-gap: 1rem;
-    z-index: var(--toolbar-z-index);
 }
 
 .top-nav {
