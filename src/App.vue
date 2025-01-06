@@ -4,10 +4,12 @@ import { RouterView } from 'vue-router'
 
 <template>
     <div class="container">
-        <header class="top-nav">
-            <RouterLink to="/">Home</RouterLink>
-            <RouterLink to="/watch">Watch</RouterLink>
-            <RouterLink to="/record">Record</RouterLink>
+        <header class="toolbar" id="toolbar">
+            <nav class="top-nav">
+                <RouterLink to="/">Home</RouterLink>
+                <RouterLink to="/watch">Watch</RouterLink>
+                <RouterLink to="/record">Record</RouterLink>
+            </nav>
         </header>
         <RouterView />
     </div>
@@ -20,30 +22,54 @@ import { RouterView } from 'vue-router'
     margin: 0 auto;
 }
 
+.toolbar {
+    --nav-width: 15rem;
+
+    display: grid;
+    width: 100%;
+    height: var(--toolbar-height);
+    grid-template-columns: minmax(var(--nav-width), 1fr) minmax(0, 2fr) minmax(var(--nav-width), 1fr);
+    padding-top: 0.5rem;
+    grid-gap: 1rem;
+    z-index: var(--toolbar-z-index);
+}
+
 .top-nav {
     display: flex;
-    position: fixed;
-    width: 100%;
-    height: var(--top-nav-height);
-    padding: var(--top-nav-padding-top) 0 var(--top-nav-padding-bottom);
     place-items: center;
+
+    a.router-link-exact-active {
+        color: var(--color-text);
+    }
+
+    a.router-link-exact-active:hover {
+        background-color: transparent;
+    }
+
+    a {
+        display: inline-block;
+        padding: 0 1rem;
+        border-left: 1px solid var(--color-border);
+    }
+
+    a:first-of-type {
+        border: 0;
+    }
 }
 
-.top-nav a.router-link-exact-active {
-    color: var(--color-text);
-}
+@media (max-width: 38rem) {
+    .toolbar {
+        --nav-width: 10rem;
+        grid-gap: 0.75rem;
+        padding-top: 0.25rem;
+    }
 
-.top-nav a.router-link-exact-active:hover {
-    background-color: transparent;
-}
+    .top-nav {
+        font-size: 0.75rem;
 
-.top-nav a {
-    display: inline-block;
-    padding: 0 1rem;
-    border-left: 1px solid var(--color-border);
-}
-
-.top-nav a:first-of-type {
-    border: 0;
+        a {
+            padding: 0 0.5rem;
+        }
+    }
 }
 </style>

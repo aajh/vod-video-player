@@ -311,6 +311,7 @@ watch(() => props.vodFile, () => {
     display: grid;
     width: 100vw;
     height: 100vh;
+    margin-top: calc(-1* var(--toolbar-height));
 
     padding: .75rem;
     grid-gap: .75rem;

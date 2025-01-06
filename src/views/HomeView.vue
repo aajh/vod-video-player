@@ -55,7 +55,7 @@ timeOffset 100
 
 <style scoped>
 .container {
-    margin-top: calc(var(--top-nav-height) + 3rem);
+    margin-top: calc(3rem);
     padding: 0 3rem;
 }
 

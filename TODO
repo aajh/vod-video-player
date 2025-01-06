@@ -2,11 +2,12 @@ Playback speed support
 Are ads a problem?
 Debug mode
 Better error handling
+    VOD file loading errors
 
 VOD watching link generator link copy button
+Go to VOD load page when watch page clicked while watching
 
 # Recorder
-Fix control clipping with the navigation
 Confirm dialog when closing the tab while recording
 Confirm recording stop
 Solution for syncing the recording to the VOD

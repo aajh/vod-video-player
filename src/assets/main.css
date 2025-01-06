@@ -47,9 +47,10 @@
     --top-nav-padding-top: 1.5rem;
     --top-nav-padding-bottom: 1rem;
     --top-nav-content-height: 1.5rem;
-    --top-nav-height: calc(var(--top-nav-padding-top) + var(--top-nav-padding-bottom) + var(--top-nav-content-height));
+    --toolbar-height: calc(var(--top-nav-padding-top) + var(--top-nav-padding-bottom) + var(--top-nav-content-height));
 
     --transition-time: 0.25s;
+    --toolbar-z-index: 10;
 }
 
 body {

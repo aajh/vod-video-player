@@ -160,29 +160,34 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
 
 <template>
     <div class="container">
-        <div class="controls" :class="!!player || 'not-ready'">
-            <button v-show="!isRecording && !recording.length" @click="start" class="button" type="button">
-                Start recording
-            </button>
-            <button v-show="isRecording" @click="stop" class="button" type="button">
-                Stop recording
-            </button>
-            <button v-show="!isRecording && recording.length" @click="save" class="button" type="button">
-                Download
-            </button>
-            <form class="video-change-form" @submit.prevent="changeVideo">
-                <label class="sr-only" for="videoId">New Youtube video ID</label>
-                <input
-                    ref="video-id-input"
-                    type="text"
-                    id="videoId"
-                    name="videoId"
-                    placeholder="New Youtube video ID" />
-                <button class="button" type="submit">Change video</button>
-            </form>
-        </div>
+        <Teleport to="#toolbar">
+            <div class="controls" :class="!!player || 'not-ready'">
+                <button v-show="!isRecording && !recording.length" @click="start" class="button" type="button">
+                    Start <span class="hide-small">recording</span>
+                </button>
+                <button v-show="isRecording" @click="stop" class="button" type="button">
+                    Stop <span class="hide-small">recording</span>
+                </button>
+                <button v-show="!isRecording && recording.length" @click="save" class="button" type="button">
+                    Download
+                </button>
+                <form class="video-change-form" @submit.prevent="changeVideo">
+                    <label class="sr-only" for="videoId">New Youtube video ID</label>
+                    <input
+                        ref="video-id-input"
+                        class="video-id-input"
+                        type="text"
+                        id="videoId"
+                        name="videoId"
+                        placeholder="New Youtube video ID" />
+                    <button class="button" type="submit">
+                        Change <span class="hide-small">video</span>
+                    </button>
+                </form>
+            </div>
+        </Teleport>
 
-        <IframeContainer v-slot="{ size }">
+        <IframeContainer class="player-container" v-slot="{ size }">
             <YoutubePlayer
                 ref="player"
                 element-id="player"
@@ -230,16 +235,12 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
 .container {
     display: grid;
     width: 100vw;
-    height: 100vh;
+    height: calc(100vh - var(--toolbar-height));
 
-    margin-top: var(--margin-top);
     padding: 1rem;
     padding-top: 0.25rem;
-    grid-gap: 0.5rem;
 
-    grid-template-columns: 100%;
-    grid-template-rows: var(--top-nav-height) 1fr;
-
+    grid-template: 100% / 100%;
     align-items: center;
     justify-items: center;
 }
@@ -248,13 +249,17 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
     display: flex;
     gap: 1rem;
     align-items: center;
-    z-index: 10;
+    justify-content: center;
 }
 
 .video-change-form {
     display: flex;
     gap: 1rem;
     align-items: center;
+}
+
+.video-id-input {
+    width: 13.5em;
 }
 
 .active {
@@ -268,5 +273,27 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
 .not-ready {
     pointer-events: none;
     opacity: 0.4;
+}
+
+@media (max-width: 73rem) {
+    .controls {
+        grid-column-start: span 2;
+        justify-content: left;
+    }
+}
+
+@media (max-width: 53rem) {
+    .controls {
+        gap: 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .video-change-form {
+        gap: 0.5rem;
+    }
+
+    .hide-small {
+        display: none;
+    }
 }
 </style>

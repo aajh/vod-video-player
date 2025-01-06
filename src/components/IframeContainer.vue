@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, useTemplateRef } from 'vue';
 
+const RESIZE_INTERVAL_MS = 500;
+
 const emit = defineEmits<{
     (e: 'resize', size: DOMRect): void,
 }>();
@@ -10,11 +12,12 @@ const containerSize = ref(new DOMRect(0, 0, 0, 0));
 let sizeInterval = 0;
 
 onMounted(() => {
-    updatePlayerSizes()
     if (sizeInterval) {
         clearInterval(sizeInterval);
         sizeInterval = 0;
     }
+    updatePlayerSizes()
+    sizeInterval = setInterval(updatePlayerSizes, RESIZE_INTERVAL_MS);
 
     window.addEventListener('resize', updatePlayerSizes);
 });

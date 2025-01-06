@@ -139,7 +139,7 @@ function onDrop(event: DragEvent) {
 <style scoped>
 .vod-selector {
     max-width: 600px;
-    margin: calc(var(--top-nav-height) + 5rem) auto 0;
+    margin: 5rem auto 0;
 }
 
 .vod-file-input-container {
