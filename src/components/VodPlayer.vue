@@ -46,13 +46,13 @@ function onReady() {
 }
 
 function tick(wasSeeking?: boolean) {
-    if (!ready.value) {
+    if (!ready.value || !vodPlayer.value || !secondPlayer.value) {
         return;
     }
 
     try {
         if (!wasSeeking) {
-            state.time = vodPlayer.value?.getCurrentTime?.() ?? 0;
+            state.time = vodPlayer.value.getCurrentTime();
         }
 
         if (!props.vodFile) {
@@ -66,7 +66,7 @@ function tick(wasSeeking?: boolean) {
                 case MomentTag.Seek:
                 case MomentTag.Play:
                     if (secondPlayerState.value !== PlayerState.Unstarted && secondPlayerState.value !== PlayerState.Cued) {
-                        secondPlayer.value!.seekTo(moment.secondTime);
+                        secondPlayer.value.seekTo(moment.secondTime);
                     }
                     break;
                 default:
@@ -82,35 +82,35 @@ function tick(wasSeeking?: boolean) {
         }
 
         const secondVideoExpectedTime = getSecondVideoTime(state.time, moment);
-        const secondVideoDuration = secondPlayer.value!.getDuration();
-        const secondVideoCurrentTime = secondPlayer.value!.getCurrentTime();
+        const secondVideoDuration = secondPlayer.value.getDuration();
+        const secondVideoCurrentTime = secondPlayer.value.getCurrentTime();
         if (secondVideoDuration && secondVideoExpectedTime > secondVideoDuration) {
             if (secondPlayerState.value === PlayerState.Playing || secondPlayerState.value === PlayerState.Buffering) {
-                secondPlayer.value!.pause();
+                secondPlayer.value.pause();
             }
             if (secondVideoCurrentTime !== secondVideoDuration) {
-                secondPlayer.value!.seekTo(secondVideoDuration);
+                secondPlayer.value.seekTo(secondVideoDuration);
             }
             return;
         }
 
         const isSecondVideoPlaying = secondPlayerState.value === PlayerState.Playing;
         if (state.running && moment.playing) {
-            if (!isSecondVideoPlaying) {
-                secondPlayer.value!.play();
+            if (!isSecondVideoPlaying && secondPlayer.value.getVideoId()) {
+                secondPlayer.value.play();
             }
         } else if (isSecondVideoPlaying) {
-            secondPlayer.value!.pause();
+            secondPlayer.value.pause();
         }
 
         if (vodPlayerState.value === PlayerState.Buffering && isSecondVideoPlaying) {
-            secondPlayer.value!.pause();
+            secondPlayer.value.pause();
         }
 
         if (Math.abs(secondVideoExpectedTime - secondVideoCurrentTime) > PLAYBACK_SYNC_TOLERANCE_S) {
             const now = Date.now();
             if (!state.lastSyncTime || now - state.lastSyncTime > PLAYBACK_SYNC_TIMEOUT_MS) {
-                secondPlayer.value!.seekTo(secondVideoExpectedTime);
+                secondPlayer.value.seekTo(secondVideoExpectedTime);
                 state.lastSyncTime = now;
             }
         }

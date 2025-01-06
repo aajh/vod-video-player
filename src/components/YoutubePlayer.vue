@@ -145,12 +145,17 @@ onMounted(async () => {
                 player = p;
                 if (videoIdToBeQueued) {
                     player.cueVideoById(videoIdToBeQueued);
+                    playbackRate.value = 1
+                }
+                if (playbackRateRequest !== null) {
+                    player.setPlaybackRate(playbackRateRequest);
                 }
                 emit('ready');
             },
             onStateChange: e => {
                 state.value = e.data as unknown as PlayerState;
             },
+            onPlaybackRateChange,
         },
     });
 
@@ -187,6 +192,7 @@ onMounted(async () => {
             const playerVideoId = getVideoId();
             if (props.videoId !== playerVideoId) {
                 player.cueVideoById(props.videoId);
+                playbackRate.value = 1
                 lastVideoCueTime = Date.now();
             }
         }
@@ -205,6 +211,7 @@ watch(() => props.videoId, (newVideoId, oldVideoId) => {
     if (player) {
         if (newVideoId) {
             player.cueVideoById(newVideoId);
+            playbackRate.value = 1
             lastVideoCueTime = Date.now();
         } else {
             player.stopVideo();
@@ -235,6 +242,38 @@ function getVideoId() {
 
     return getVideoIdFromUrl(url);
 }
+
+const playbackRate = defineModel<number>('playbackRate', { default: 1 });
+let playbackRateRequest = null as number | null;
+function onPlaybackRateChange() {
+    if (!player) {
+        return;
+    }
+
+    playbackRate.value = player.getPlaybackRate();
+    if (playbackRateRequest !== null) {
+        playbackRateRequest = null;
+    }
+}
+watch(playbackRate, rate => {
+    if (rate === playbackRateRequest) {
+        return;
+    }
+
+    if (!player) {
+        playbackRateRequest = rate;
+        return;
+    }
+
+    const currentRate = player.getPlaybackRate();
+    if (currentRate === rate) {
+        playbackRateRequest = null;
+        return;
+    }
+
+    playbackRateRequest = rate;
+    player.setPlaybackRate(rate);
+});
 </script>
 
 <template>
