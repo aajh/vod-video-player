@@ -42,6 +42,13 @@
     --color-button-active: hsl(160, 100%, 65%);
     --color-button-text: hsl(0, 0%, 16%);
 
+    --color-error: hsl(0, 67%, 58%);
+    --color-error-text: hsl(0, 0%, 12%);
+    --color-error-button: var(--color-background-mute);
+    --color-error-button-hover: hsl(0, 0%, 25%);
+    --color-error-button-active: hsl(0, 0%, 33%);
+    --color-error-button-text: hsl(0, 0%, 75%);
+
     --text-content-max-width: 800px;
 
     --top-nav-padding-top: 1.5rem;
@@ -101,7 +108,6 @@ a,
     padding: 0.25rem 0.875rem;
     border-radius: 0.875rem;
     border: none;
-    transition: background-color var(--transition-time);
     cursor: pointer;
 
     &:hover {

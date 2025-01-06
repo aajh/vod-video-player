@@ -10,6 +10,21 @@ const TEST_VOD_FILE_URL = '/test_vod.txt';
 
 const route = useRoute();
 
+class ParseError extends Error {
+    constructor(vodFilename: string) {
+        super(`Failed to parse VOD file ${vodFilename}`);
+        this.name = 'ParseError';
+    }
+}
+
+const loadErrorMessage = ref('');
+function setLoadErrorMessage(error: unknown) {
+        console.error(error);
+        loadErrorMessage.value = error instanceof ParseError
+            ? 'Error while parsing the VOD file'
+            : 'Error while loading the VOD file';
+}
+
 const vodFileUrl = ref('');
 const vodFileUrlLink = computed(() => {
     if (!vodFileUrl.value) {
@@ -40,13 +55,12 @@ async function loadVodFromUrl(url: string) {
         const timeOffset = route.query.timeOffset ? parseInt(route.query.timeOffset as string, 10) / 1000 : undefined;
         const newVodFile = parseVodFile(text, timeOffset);
         if (!newVodFile) {
-            throw new Error(`Failed to parse VOD file ${url}`);
+            throw new ParseError(url);
         }
 
         setVodFile(newVodFile);
     } catch (error) {
-        // TODO: Show error in the UI
-        console.error(error);
+        setLoadErrorMessage(error);
     }
 }
 
@@ -73,26 +87,35 @@ async function loadVodFromFile(file: File) {
     const timeOffset = route.query.timeOffset ? parseInt(route.query.timeOffset as string, 10) / 1000 : undefined;
     const newVodFile = parseVodFile(contents, timeOffset);
     if (!newVodFile) {
-        throw new Error(`Failed to parse VOD file ${file.name}`);
+        throw new ParseError(file.name);
     }
 
     setVodFile(newVodFile);
 }
 
-function onFileChange() {
-    if (!vodFileInput.value?.files?.length) {
-        return;
+async function onFileChange() {
+    try {
+        if (!vodFileInput.value?.files?.length) {
+            return;
+        }
+
+        const file = vodFileInput.value.files[0];
+        await loadVodFromFile(file);
+    } catch (error) {
+        setLoadErrorMessage(error);
     }
-    const file = vodFileInput.value.files[0];
-    loadVodFromFile(file);
 }
 
 const dragHover = ref(false);
 
 function onDrop(event: DragEvent) {
-    const file = event.dataTransfer?.files?.[0];
-    if (file) {
-        loadVodFromFile(file);
+    try {
+        const file = event.dataTransfer?.files?.[0];
+        if (file) {
+            loadVodFromFile(file);
+        }
+    } catch (error) {
+        setLoadErrorMessage(error);
     }
 }
 </script>
@@ -132,6 +155,13 @@ function onDrop(event: DragEvent) {
         </form>
 
         <button v-if="false" @click="loadVodFromUrl(TEST_VOD_FILE_URL)" type="button">Load test VOD</button>
+
+        <div class="error-container" v-show="loadErrorMessage">
+            <div class="error-message">{{ loadErrorMessage }}</div>
+            <button class="error-close-button" type="button" @click="loadErrorMessage = ''">
+                <span>&#x00D7;</span>
+            </button>
+        </div>
     </div>
     <VodPlayer v-if="vodFile" :vod-file />
 </template>
@@ -182,5 +212,59 @@ function onDrop(event: DragEvent) {
     .vod-url-link {
         margin-top: 0.5rem;
     }
+}
+
+.error-container {
+    display: grid;
+
+    margin-top: 1rem;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto 1fr;
+
+    background-color: var(--color-error);
+    color: var(--color-error-text);
+    border-radius: 0.875rem;
+}
+
+.error-close-button {
+    --button-size: 2rem;
+
+    display: grid;
+    grid-area: 1 / 2;
+    justify-content: center;
+    align-content: center;
+    width: var(--button-size);
+    height: var(--button-size);
+    margin: 0.375rem;
+
+    background-color: var(--color-error-button);
+    color: var(--color-error-button-text);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+
+    &:hover {
+        background-color: var(--color-error-button-hover);
+    }
+    &:active {
+        background-color: var(--color-error-button-active);
+    }
+
+    span {
+        margin-top: -0.125rem;
+        font-size: 1.375rem;
+        font-weight: 600;
+    }
+}
+
+.error-message {
+    grid-column: 1 / span 2;
+    grid-row: 1 / span 2;
+
+    padding: 2.5rem;
+    text-align: center;
+
+    font-size: 1.375rem;
+    font-weight: 600;
 }
 </style>
