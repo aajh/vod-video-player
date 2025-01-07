@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from 'vue';
+import { RouterLink } from 'vue-router';
 
 import { useDebug } from '@/misc';
 import { createFilenameTimestamp, MomentTag, saveToDisk, VOD_FILE_TEMPLATE } from '@/vodFile';
 
 import IframeContainer from '@/components/IframeContainer.vue';
+import Toolbar from '@/components/Toolbar.vue';
 import YoutubePlayer from '@/components/YoutubePlayer.vue';
 import { PlayerState, getVideoIdFromUrl } from '@/components/YoutubePlayer.vue';
 
@@ -176,7 +178,7 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument'], arg
 
 <template>
     <div class="container">
-        <Teleport to="#toolbar">
+        <Toolbar class="toolbar">
             <div class="controls" :class="!!player || 'not-ready'">
                 <button v-show="!isRecording && !recording.length" @click="start" class="button" type="button">
                     Start <span class="hide-small">recording</span>
@@ -201,7 +203,8 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument'], arg
                     </button>
                 </form>
             </div>
-        </Teleport>
+            <RouterLink class="home-link" to="/">Home</RouterLink>
+        </Toolbar>
 
         <IframeContainer class="player-container" v-slot="{ size }">
             <YoutubePlayer
@@ -257,13 +260,24 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument'], arg
     padding: 1rem;
     padding-top: 0;
 
-    grid-template: 100% / 100%;
+    grid-template-columns: 100%;
+    grid-template-rows: auto 1fr;
     align-items: center;
     justify-items: center;
 }
 
+.toolbar {
+    grid-template-columns: auto 1fr;
+}
+
+.home-link {
+    grid-area: 1 / 1;
+}
+
 .controls {
     display: flex;
+    grid-column: 1 / span 2;
+    grid-row: 1;
     gap: 1rem;
     align-items: center;
     justify-content: center;
@@ -292,16 +306,13 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument'], arg
     opacity: 0.4;
 }
 
-@media (max-width: 73rem) {
-    .controls {
-        grid-column-start: span 2;
-        justify-content: left;
-    }
-}
-
 @media (max-width: 53rem) {
     .controls {
         gap: 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .home-link {
         font-size: 0.75rem;
     }
 

@@ -5,6 +5,7 @@ import { useRoute } from 'vue-router';
 import { useDebug } from '@/misc';
 import { ParseError, parseVodFile, type VodFile } from '@/vodFile';
 
+import Navigation from '@/components/Navigation.vue';
 import VodPlayer from '@/components/VodPlayer.vue';
 
 const TEST_VOD_FILE_URL = '/test_vod.txt';
@@ -119,6 +120,8 @@ async function onDrop(event: DragEvent) {
 </script>
 
 <template>
+    <Navigation />
+
     <div class="vod-selector" v-show="!vodFile">
         <h2 class="vod-file-label">
             Select VOD file to watch

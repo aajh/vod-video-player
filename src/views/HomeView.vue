@@ -1,5 +1,10 @@
+<script setup lang="ts">
+import Navigation from '@/components/Navigation.vue';
+</script>
+
 <template>
     <div class="container">
+        <Navigation />
         <main class="content">
             <h1>VOD Video Player</h1>
             <p>
@@ -50,14 +55,11 @@ timeOffset 800
 </template>
 
 <style scoped>
-.container {
-    margin-top: calc(3rem);
-    padding: 0 3rem;
-}
-
 .content {
     max-width: var(--text-content-max-width);
     margin: 2rem auto 5rem;
+    margin-top: 2rem;
+    padding: 0 3rem;
 }
 
 h2 {
