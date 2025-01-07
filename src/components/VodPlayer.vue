@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref, useTemplateRef, watch } from 'vue';
 
+import { useDebug } from '@/misc';
 import { MomentTag } from '@/vodFile';
 import type { Moment, VodFile } from '@/vodFile';
 
@@ -11,6 +12,8 @@ import { PlayerState } from '@/components/YoutubePlayer.vue';
 const TICK_DELAY_MS = 8;
 const PLAYBACK_SYNC_TOLERANCE_S = 0.5;
 const PLAYBACK_SYNC_TIMEOUT_MS = 2000;
+
+const debug = useDebug();
 
 const props = defineProps<{
     vodFile: VodFile | null,
@@ -260,7 +263,7 @@ watch(() => props.vodFile, () => {
                 :video-id="state.currentMoment?.videoId ?? null" />
         </IframeContainer>
 
-        <div v-if="false" class="debug">
+        <div v-if="debug" class="debug">
             <div class="debug-controls" :class="!!ready || 'not-ready'">
                 <button v-show="!state.running" @click="play" type="button">Play</button>
                 <button v-show="state.running" @click="pause" type="button">Pause</button>

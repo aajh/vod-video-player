@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from 'vue';
 
+import { useDebug } from '@/misc';
 import { createFilenameTimestamp, MomentTag, saveToDisk, VOD_FILE_TEMPLATE } from '@/vodFile';
 
 import IframeContainer from '@/components/IframeContainer.vue';
@@ -8,6 +9,8 @@ import YoutubePlayer from '@/components/YoutubePlayer.vue';
 import { PlayerState, getVideoIdFromUrl } from '@/components/YoutubePlayer.vue';
 
 const RECORING_SYNC_INTERVAL_MS = 5000;
+
+const debug = useDebug();
 
 const player = useTemplateRef<typeof YoutubePlayer>('player');
 const playerState = ref(PlayerState.Unstarted);
@@ -199,7 +202,7 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
         </IframeContainer>
 
 
-        <div v-if="false">
+        <div v-if="debug">
             <div :class="{
                 active: playerState === PlayerState.Playing,
                 buffering: playerState === PlayerState.Buffering,
@@ -211,7 +214,7 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
             </div>
         </div>
 
-        <table v-if="false">
+        <table v-if="debug">
             <thead>
                 <tr>
                     <th scope="col">VOD Time</th>

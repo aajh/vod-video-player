@@ -2,12 +2,14 @@
 import { computed, onMounted, ref, useTemplateRef } from 'vue';
 import { useRoute } from 'vue-router';
 
+import { useDebug } from '@/misc';
 import { ParseError, parseVodFile, type VodFile } from '@/vodFile';
 
 import VodPlayer from '@/components/VodPlayer.vue';
 
 const TEST_VOD_FILE_URL = '/test_vod.txt';
 
+const debug = useDebug();
 const route = useRoute();
 
 const loadErrorMessage = ref('');
@@ -150,7 +152,7 @@ async function onDrop(event: DragEvent) {
             <div class="vod-url-link">{{ vodFileUrlLink }}</div>
         </form>
 
-        <button v-if="false" @click="loadVodFromUrl(TEST_VOD_FILE_URL)" type="button">Load test VOD</button>
+        <button v-if="debug" @click="loadVodFromUrl(TEST_VOD_FILE_URL)" type="button">Load test VOD</button>
 
         <div class="error-container" v-show="loadErrorMessage">
             <div class="error-message">
