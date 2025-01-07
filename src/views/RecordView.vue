@@ -26,6 +26,7 @@ interface RecordedMoment {
     time: number,
     tag: MomentTag,
     argument?: string | number,
+    argument2?: string | number,
 }
 const recording = ref([] as RecordedMoment[]);
 const latestMoments = computed(() => {
@@ -38,12 +39,22 @@ watch(playerState, (state, oldState) => {
         return;
     }
 
-    const playerTimeMs = Math.round(player.value.getCurrentTime() * 1000);
+    const playerTimeMs = Math.floor(player.value.getCurrentTime() * 1000);
     if (state === PlayerState.Playing) {
         recordMoment(MomentTag.Play, playerTimeMs);
     } else if (oldState === PlayerState.Playing) {
         recordMoment(MomentTag.Pause, playerTimeMs);
     }
+});
+
+const playbackRate = ref(1);
+watch(playbackRate, () => {
+    if (!player.value || !isRecording.value) {
+        return;
+    }
+
+    const playerTimeMs = Math.floor(player.value.getCurrentTime() * 1000);
+    recordMoment(MomentTag.ChangePlaybackRate, playbackRate.value, playerTimeMs);
 });
 
 watch(videoId, () => {
@@ -61,7 +72,7 @@ function onSeek() {
         return;
     }
 
-    const playerTimeMs = Math.round(player.value.getCurrentTime() * 1000);
+    const playerTimeMs = Math.floor(player.value.getCurrentTime() * 1000);
     recordMoment(MomentTag.Seek, playerTimeMs);
 }
 
@@ -78,7 +89,7 @@ function onSync() {
         return;
     }
 
-    const playerTimeMs = Math.round(player.value.getCurrentTime() * 1000);
+    const playerTimeMs = Math.floor(player.value.getCurrentTime() * 1000);
     const latestMoment = recording.value[recording.value.length - 1];
     if (latestMoment?.tag !== MomentTag.Sync || latestMoment.argument !== playerTimeMs) {
         recordMoment(MomentTag.Sync, playerTimeMs);
@@ -100,7 +111,7 @@ function start() {
             videoId.value
         );
 
-        const playerTimeMs = Math.round(player.value.getCurrentTime() * 1000);
+        const playerTimeMs = Math.floor(player.value.getCurrentTime() * 1000);
         if (playerTimeMs !== 0) {
             recordMoment(MomentTag.Seek, playerTimeMs);
         }
@@ -139,8 +150,9 @@ function save() {
     let file = VOD_FILE_TEMPLATE;
 
     for (const m of recording.value) {
-        const argument = m.argument !== undefined ? ` ${String(m.argument)}` : '';
-        const line = `${m.time} ${m.tag}${argument}\n`;
+        const argument = m.argument !== undefined ? ` ${m.argument}` : '';
+        const argument2 = m.argument2 !== undefined ? ` ${m.argument2}` : '';
+        const line = `${m.time} ${m.tag}${argument}${argument2}\n`;
         file = file.concat(line);
     }
 
@@ -148,7 +160,7 @@ function save() {
     saveToDisk(filename, file);
 }
 
-function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
+function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument'], argument2?: RecordedMoment['argument2']) {
     if (!player.value || !isRecording.value) {
         return;
     }
@@ -157,6 +169,7 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
         time: Date.now() - recordingStart,
         tag,
         argument,
+        argument2,
     });
 }
 </script>
@@ -195,6 +208,7 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument']) {
                 ref="player"
                 element-id="player"
                 v-model:state="playerState"
+                v-model:playback-rate="playbackRate"
                 @seek="onSeek"
                 :video-id
                 :width="size.width"

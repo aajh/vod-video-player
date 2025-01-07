@@ -41,12 +41,9 @@ timeOffset 800
 200 loadVideo xvFZjo5PgG0
 3500 seek 500</pre>
             <p>
-                Along with pausing and unpausing, video changes and seeks are also recorder.
+                Along with pausing and unpausing, video changes, playback rate adjustments and seeks are also recorded.
                 To make seeks shorter than one second, the video should be paused, after which
-                the video can be moved even frame by frame. (Playback speed adjustment is not yet supported.)
-            </p>
-            <p>
-                The feature set is very bare-bones, and there are probably many bugs and inconveniences.
+                all seeks can be recorded. On playback, paused video might be off by a frame.
             </p>
         </main>
     </div>
@@ -60,7 +57,7 @@ timeOffset 800
 
 .content {
     max-width: var(--text-content-max-width);
-    margin: 2rem auto;
+    margin: 2rem auto 5rem;
 }
 
 h2 {
