@@ -1,7 +1,8 @@
+Reusable nav component to make life easie
 Playback speed support
-Are ads a problem?
 Debug mode
 Check error handling
+Are ads a problem?
 
 VOD watching link generator link copy button
 Go to VOD load page when watch page clicked while watching
@@ -19,3 +20,4 @@ Do something about the toolbar?
 Remember play position
 Fix the flash when following a VOD link
 Change the address when loading VOD from an URL
+Start playing when clicking 2nd player without video

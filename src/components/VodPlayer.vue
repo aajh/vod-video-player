@@ -8,7 +8,7 @@ import IframeContainer from '@/components/IframeContainer.vue';
 import YoutubePlayer from '@/components/YoutubePlayer.vue';
 import { PlayerState } from '@/components/YoutubePlayer.vue';
 
-const TICK_DELAY_MS = 10;
+const TICK_DELAY_MS = 8;
 const PLAYBACK_SYNC_TOLERANCE_S = 0.5;
 const PLAYBACK_SYNC_TIMEOUT_MS = 2000;
 
@@ -61,37 +61,39 @@ function tick(wasSeeking?: boolean) {
 
         const momentIndex = getMomentIndex(props.vodFile.timeline, state.time);
         const moment = momentIndex !== null ? props.vodFile.timeline[momentIndex] : null;
-        if (moment !== state.currentMoment) {
-            switch (moment?.tag) {
-                case MomentTag.Seek:
-                case MomentTag.Play:
-                    if (secondPlayerState.value !== PlayerState.Unstarted && secondPlayerState.value !== PlayerState.Cued) {
-                        secondPlayer.value.seekTo(moment.secondTime);
-                    }
-                    break;
-                default:
-                    break;
-            }
-
+        const isNewMoment = moment !== state.currentMoment;
+        if (isNewMoment) {
             state.currentMoment = moment;
             state.currentMomentIndex = momentIndex;
         }
-
         if (!moment) {
             return;
         }
 
-        const secondVideoExpectedTime = getSecondVideoTime(state.time, moment);
-        const secondVideoDuration = secondPlayer.value.getDuration();
-        const secondVideoCurrentTime = secondPlayer.value.getCurrentTime();
-        if (secondVideoDuration && secondVideoExpectedTime > secondVideoDuration) {
-            if (secondPlayerState.value === PlayerState.Playing || secondPlayerState.value === PlayerState.Buffering) {
-                secondPlayer.value.pause();
-            }
-            if (secondVideoCurrentTime !== secondVideoDuration) {
-                secondPlayer.value.seekTo(secondVideoDuration);
-            }
+        if (!secondPlayer.value.getVideoId() || secondPlayerState.value === PlayerState.Ended) {
             return;
+        }
+
+        const secondVideoExpectedTime = getSecondVideoTime(state.time, moment);
+        const secondVideoCurrentTime = secondPlayer.value.getCurrentTime();
+
+        if (isNewMoment) {
+            switch (moment?.tag) {
+                case MomentTag.Seek:
+                case MomentTag.Play:
+                case MomentTag.Pause:
+                    if (moment.playing) {
+                        secondPlayer.value.play();
+                    } else {
+                        secondPlayer.value.pause();
+                    }
+                    if (secondPlayerState.value !== PlayerState.Unstarted && secondPlayerState.value !== PlayerState.Cued) {
+                        secondPlayer.value.seekTo(secondVideoExpectedTime);
+                    }
+                    return;
+                default:
+                    break;
+            }
         }
 
         const isSecondVideoPlaying = secondPlayerState.value === PlayerState.Playing;

@@ -273,6 +273,7 @@ watch(playbackRate, rate => {
 
     playbackRateRequest = rate;
     player.setPlaybackRate(rate);
+    // TODO: Handle failure case
 });
 </script>
 

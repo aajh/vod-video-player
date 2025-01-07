@@ -36,11 +36,10 @@
             <pre>
 vodFileVersion 1
 vodVideoId M7lc1UVf-VE
-timeOffset 100
+timeOffset 800
 
 200 loadVideo xvFZjo5PgG0
-3500 seek 500
-8641 pause 5641</pre>
+3500 seek 500</pre>
             <p>
                 Along with pausing and unpausing, video changes and seeks are also recorder.
                 To make seeks shorter than one second, the video should be paused, after which
