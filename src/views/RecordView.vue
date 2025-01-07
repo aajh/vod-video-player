@@ -255,7 +255,7 @@ function recordMoment(tag: MomentTag, argument?: RecordedMoment['argument'], arg
 .container {
     display: grid;
     width: 100vw;
-    height: calc(100vh - var(--toolbar-height));
+    height: 100vh;
 
     padding: 1rem;
     padding-top: 0;
