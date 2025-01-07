@@ -18,4 +18,6 @@ timeOffset 0
 22000 play 4000
 24000 sync 6000
 30000 seek 60000
-40000 pause 70000
+32000 changePlaybackRate 2 62000
+40000 changePlaybackRate 1 78000
+50000 pause 88000

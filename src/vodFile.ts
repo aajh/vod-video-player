@@ -5,12 +5,14 @@ export enum MomentTag {
     Pause = 'pause',
     Seek = 'seek',
     Sync = 'sync',
+    ChangePlaybackRate = 'changePlaybackRate',
 }
 export interface Moment {
     time: number;
     secondTime: number;
     videoId: string | null;
     playing: boolean;
+    playbackRate: number;
     tag: MomentTag;
     argument?: number | string;
 }
@@ -34,8 +36,8 @@ export class ParseError extends Error {
 const VOD_PARSER_VERSION = '1';
 const WHITESPACE_REGEX = /\s+/;
 
-// [time, tag, argument]
-type FileMoment = [number, string, string | undefined];
+// [time, tag, argument, argument2]
+type FileMoment = [number, string, string | undefined, string | undefined];
 
 enum ParserState {
     Header,
@@ -85,12 +87,12 @@ export function parseVodFile(fileContent: string, options: ParseOptions = {}): V
                 }
                 break;
             case ParserState.Timeline:
-                if (words.length !== 2 && words.length !== 3) {
+                if (words.length < 2 || words.length > 4) {
                     console.error(`Invalid line ${line}`);
                     continue;
                 }
-                const [time, tag, argument] = words;
-                const rawMoment: FileMoment = [parseInt(time, 10) / 1000 + timeOffset, tag, argument];
+                const [time, tag, argument, argument2] = words;
+                const rawMoment: FileMoment = [parseInt(time, 10) / 1000 + timeOffset, tag, argument, argument2];
                 rawTimeline.push(rawMoment);
                 break;
         }
@@ -122,35 +124,40 @@ function parseTimelineMoments(timeline: FileMoment[]): Moment[] {
     let secondTime = 0;
     let videoId: string | null = null;
     let playing = false;
+    let playbackRate = 1;
     for (let i = 0; i < timeline.length; i++) {
         const rawMoment = timeline[i];
         const time = rawMoment[0];
         const tag = rawMoment[1] as MomentTag;
         let argument: Moment['argument'] = rawMoment[2];
+        const argument2 = rawMoment[3];
 
         switch (tag) {
             case MomentTag.CueVideo:
                 secondTime = 0;
                 videoId = argument ?? null;
                 playing = false;
+                playbackRate = 1;
                 break;
             case MomentTag.LoadVideo:
                 secondTime = 0;
                 videoId = argument ?? null;
                 playing = true;
+                playbackRate = 1;
                 break;
             case MomentTag.Play:
-                secondTime += 0; // No-op
                 playing = true;
                 if (argument) {
                     argument = parseInt(argument, 10) / 1000;
+                    secondTime = argument;
                 }
                 break;
             case MomentTag.Pause:
-                secondTime += (time - previousVodTime);
+                secondTime += playbackRate * (time - previousVodTime);
                 playing = false;
                 if (argument) {
                     argument = parseInt(argument, 10) / 1000;
+                    secondTime = argument;
                 }
                 break;
             case MomentTag.Seek:
@@ -161,6 +168,18 @@ function parseTimelineMoments(timeline: FileMoment[]): Moment[] {
                 }
                 argument = parseInt(argument, 10) / 1000;
                 secondTime = argument;
+                break;
+            case MomentTag.ChangePlaybackRate:
+                if (!argument) {
+                    console.warn('No playback rate given');
+                    continue;
+                }
+                secondTime += playbackRate * (time - previousVodTime);
+                argument = Number(argument);
+                playbackRate = argument;
+                if (argument2) {
+                    secondTime = parseInt(argument2, 10) / 1000;
+                }
                 break;
             default:
                 const exhaustiveSwitchCheck: never = tag;
@@ -174,8 +193,9 @@ function parseTimelineMoments(timeline: FileMoment[]): Moment[] {
             secondTime,
             videoId,
             playing,
+            playbackRate,
             tag,
-            argument: argument,
+            argument,
         };
     }
 

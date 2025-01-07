@@ -127,8 +127,8 @@ function tick(wasSeeking?: boolean) {
 }
 
 function getSecondVideoTime(currentTime: number, moment: Moment) {
-    const { time, secondTime, playing } = moment;
-    return secondTime + (playing ? currentTime - time : 0);
+    const { time, secondTime, playing, playbackRate } = moment;
+    return secondTime + (playing ? playbackRate * (currentTime - time) : 0);
 }
 
 function getMomentIndex(timeline: Moment[], time: number) {
@@ -258,6 +258,7 @@ watch(() => props.vodFile, () => {
                 element-id="second-player"
                 v-model:state="secondPlayerState"
                 @ready="onReady"
+                :playback-rate="state.currentMoment?.playbackRate ?? 1"
                 :width="size.width"
                 :height="size.height"
                 :video-id="state.currentMoment?.videoId ?? null" />
@@ -290,6 +291,7 @@ watch(() => props.vodFile, () => {
                     <tr>
                         <th scope="col">VOD Time</th>
                         <th scope="col">2nd Video Time</th>
+                        <th scope="col">Playback Rate</th>
                         <th scope="col">Event Tag</th>
                         <th scope="col">Event Argument</th>
                     </tr>
@@ -302,6 +304,7 @@ watch(() => props.vodFile, () => {
                         @click="seek(moment.time)">
                         <td>{{ moment.time }}</td>
                         <td>{{ moment.secondTime }}</td>
+                        <td>{{ moment.playbackRate }}</td>
                         <td>{{ moment.tag }}</td>
                         <td>{{ moment.argument }}</td>
                     </tr>
