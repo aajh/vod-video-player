@@ -22,6 +22,11 @@ import Navigation from '@/components/Navigation.vue';
                 Unfortunately, there are some Youtube interfaces that can't be disabled, so
                 for example, the recommendation interface needs to be closed once per playback.
             </p>
+            <p>
+                Here's a link to a <RouterLink to="/watch?load=%2Fvod_recording_demo.txt">demo VOD recording</RouterLink>.
+                It has a fast playback rate most of the time and a lot of seeking, so the other video might be buffering
+                a lot, and therefore lag and skip somewhat.
+            </p>
 
             <h2>Recording</h2>
             <p>
