@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, useTemplateRef, watch } from 'vue';
+import { onMounted, onUnmounted, reactive, ref, useTemplateRef, watch } from 'vue';
 
 import { useDebug } from '@/misc';
 import { MomentTag } from '@/vodFile';
@@ -48,12 +48,23 @@ function onReady() {
     ready.value = true;
 }
 
-function tick(wasSeeking?: boolean) {
-    if (!ready.value || !vodPlayer.value || !secondPlayer.value) {
-        return;
-    }
+onMounted(() => {
+    tick();
+});
 
+onUnmounted(() => {
+    if (state.tickTimeout) {
+        clearTimeout(state.tickTimeout);
+        state.tickTimeout = 0;
+    }
+});
+
+function tick(wasSeeking?: boolean) {
     try {
+        if (!ready.value || !vodPlayer.value || !secondPlayer.value) {
+            return;
+        }
+
         if (!wasSeeking) {
             state.time = vodPlayer.value.getCurrentTime();
         }
@@ -73,12 +84,26 @@ function tick(wasSeeking?: boolean) {
             return;
         }
 
-        if (!secondPlayer.value.getVideoId() || secondPlayerState.value === PlayerState.Ended) {
+        const secondVideoExpectedTime = getSecondVideoTime(state.time, moment);
+        const secondVideoCurrentTime = secondPlayer.value.getCurrentTime();
+
+        if (!state.running && moment.videoId) {
+            const s = secondPlayerState.value;
+            if ((s === PlayerState.Cued || s === PlayerState.Unstarted) && secondVideoExpectedTime) {
+                secondPlayer.value.play();
+                secondPlayer.value.pause();
+            }
+            if (s !== PlayerState.Ended && s !== PlayerState.Cued) {
+                if (Math.abs(secondVideoCurrentTime - secondVideoExpectedTime) > TICK_DELAY_MS / 1000) {
+                    secondPlayer.value.seekTo(secondVideoExpectedTime);
+                }
+            }
             return;
         }
 
-        const secondVideoExpectedTime = getSecondVideoTime(state.time, moment);
-        const secondVideoCurrentTime = secondPlayer.value.getCurrentTime();
+        if (!secondPlayer.value.getVideoId() || secondPlayerState.value === PlayerState.Ended) {
+            return;
+        }
 
         if (isNewMoment) {
             switch (moment?.tag) {
@@ -100,7 +125,7 @@ function tick(wasSeeking?: boolean) {
         }
 
         const isSecondVideoPlaying = secondPlayerState.value === PlayerState.Playing;
-        if (state.running && moment.playing) {
+        if (moment.playing) {
             if (!isSecondVideoPlaying && secondPlayer.value.getVideoId()) {
                 secondPlayer.value.play();
             }
@@ -120,9 +145,7 @@ function tick(wasSeeking?: boolean) {
             }
         }
     } finally {
-        if (state.running) {
-            state.tickTimeout = setTimeout(tick, TICK_DELAY_MS);
-        }
+        state.tickTimeout = setTimeout(tick, TICK_DELAY_MS);
     }
 }
 
@@ -177,26 +200,9 @@ function pause() {
     state.running = false;
     vodPlayer.value!.pause();
     secondPlayer.value!.pause();
-    if (state.tickTimeout) {
-        clearTimeout(state.tickTimeout);
-        state.tickTimeout = null;
-    }
 }
 
-function stop() {
-    if (!ready.value) {
-        return;
-    }
-
-    pause();
-    state.currentMoment = null;
-    state.currentMomentIndex = null;
-    state.time = 0;
-    vodPlayer.value!.stop();
-    secondPlayer.value!.stop();
-}
-
-async function seek(time: number) {
+async function debugSeek(time: number) {
     if (!ready.value) {
         return;
     }
@@ -231,10 +237,8 @@ watch(vodPlayerState, newState => {
 });
 
 watch(() => props.vodFile, () => {
-    if (state.running) {
-        vodPlayer.value?.stop?.();
-        secondPlayer.value?.stop?.();
-    }
+    vodPlayer.value?.stop?.();
+    secondPlayer.value?.stop?.();
 
     Object.assign(state, defaultState);
 });
@@ -265,12 +269,12 @@ watch(() => props.vodFile, () => {
         </IframeContainer>
 
         <div v-if="debug" class="debug">
-            <div class="debug-controls" :class="!!ready || 'not-ready'">
-                <button v-show="!state.running" @click="play" type="button">Play</button>
-                <button v-show="state.running" @click="pause" type="button">Pause</button>
-                <button :disabled="state.time === 0" @click="stop" type="button">Stop</button>
+            <div class="debug-controls">
                 <div>
-                    Time {{ state.time }}
+                    Time {{ Math.floor(state.time * 1000) }}
+                </div>
+                <div>
+                    2nd video ID {{ state.currentMoment?.videoId }}
                 </div>
                 <div :class="{
                     active: vodPlayerState === PlayerState.Playing,
@@ -286,7 +290,7 @@ watch(() => props.vodFile, () => {
                 </div>
             </div>
 
-            <table class="debug-timeline">
+            <table v-if="false" class="debug-timeline">
                 <thead>
                     <tr>
                         <th scope="col">VOD Time</th>
@@ -301,7 +305,7 @@ watch(() => props.vodFile, () => {
                         v-for="moment in vodFile?.timeline ?? []"
                         :key="moment.time"
                         :class="moment === state.currentMoment ? 'active' : ''"
-                        @click="seek(moment.time)">
+                        @click="debugSeek(moment.time)">
                         <td>{{ moment.time }}</td>
                         <td>{{ moment.secondTime }}</td>
                         <td>{{ moment.playbackRate }}</td>
