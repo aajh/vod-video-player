@@ -122,7 +122,7 @@ async function onDrop(event: DragEvent) {
 <template>
     <Navigation />
 
-    <div class="vod-selector" v-show="!vodFile">
+    <div class="vod-selector" v-show="!vodFile && !route.query.load">
         <h2 class="vod-file-label">
             Select VOD file to watch
         </h2>
