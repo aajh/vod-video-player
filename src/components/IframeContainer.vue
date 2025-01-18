@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, useTemplateRef } from 'vue';
+import { onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
 
 const RESIZE_INTERVAL_MS = 500;
 
@@ -29,6 +29,16 @@ onUnmounted(() => {
     }
 
     window.removeEventListener('resize', updatePlayerSizes);
+    if (container.value) {
+        resizeObserver.unobserve(container.value);
+    }
+});
+
+const resizeObserver = new ResizeObserver(updatePlayerSizes);
+watch(container, () => {
+    if (container.value) {
+        resizeObserver.observe(container.value);
+    }
 });
 
 function updatePlayerSizes() {
@@ -64,6 +74,7 @@ function updatePlayerSizes() {
     max-width: 100%;
     grid-template: 1fr / 100%;
     align-items: center;
+    overflow: hidden;
 }
 
 .container-middle {
@@ -81,5 +92,7 @@ function updatePlayerSizes() {
 
 .container-the-one-after-inner {
     margin: 0 auto;
+    width: 100%;
+    height: 100%;
 }
 </style>

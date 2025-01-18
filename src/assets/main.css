@@ -49,6 +49,8 @@
     --color-error-button-active: hsl(0, 0%, 33%);
     --color-error-button-text: hsl(0, 0%, 75%);
 
+    --color-resize-bar-icon: hsl(0, 0%, 20%);
+
     --text-content-max-width: 800px;
 
     --top-nav-padding-top: 1.5rem;

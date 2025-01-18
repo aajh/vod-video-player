@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, reactive, ref, useTemplateRef, watch } from 'vue';
+import { computed, onMounted, onUnmounted, reactive, ref, useTemplateRef, watch } from 'vue';
 
 import { useDebug } from '@/misc';
 import { MomentTag } from '@/vodFile';
@@ -242,11 +242,58 @@ watch(() => props.vodFile, () => {
 
     Object.assign(state, defaultState);
 });
+
+
+const playerContainer = useTemplateRef('player-container');
+const playerContainerWidth = ref(window.innerWidth);
+
+const INITIAL_VOD_PLAYER_SIZE = 0.4;
+const RESIZE_BAR_WIDTH = 16;
+const vodPlayerWidth = ref(INITIAL_VOD_PLAYER_SIZE * (playerContainerWidth.value - RESIZE_BAR_WIDTH));
+const secondPlayerWidth = computed(() => playerContainerWidth.value - RESIZE_BAR_WIDTH - vodPlayerWidth.value);
+
+function onWindowResize() {
+    const oldWidth = playerContainerWidth.value;
+
+    const size = playerContainer.value?.getBoundingClientRect();
+    playerContainerWidth.value = size ? size.width : window.innerWidth;
+
+    if (playerContainerWidth.value !== oldWidth) {
+        vodPlayerWidth.value = playerContainerWidth.value / oldWidth * vodPlayerWidth.value;
+    }
+}
+onWindowResize();
+onMounted(() => {
+    window.addEventListener('resize', onWindowResize);
+});
+onUnmounted(() => {
+    window.removeEventListener('resize', onWindowResize);
+});
+
+const resizing = ref(false);
+function startResize() {
+    resizing.value = true;
+}
+
+function endResize() {
+    resizing.value = false;
+}
+
+function updateResize(event: MouseEvent) {
+    if (resizing.value) {
+        vodPlayerWidth.value = event.clientX - RESIZE_BAR_WIDTH / 2;
+    }
+}
 </script>
 
 <template>
-    <div class="container">
-        <IframeContainer v-slot="{ size }">
+    <div
+        class="container"
+        ref="player-container"
+        :class="resizing && 'resizing'"
+        @mouseup="endResize"
+        @mousemove="updateResize">
+        <IframeContainer class="vod-player" :style="{ 'max-width': `${vodPlayerWidth}px` }" v-slot="{ size }">
             <YoutubePlayer
                 ref="vod-player"
                 element-id="vod-player"
@@ -256,7 +303,8 @@ watch(() => props.vodFile, () => {
                 :height="size.height"
                 :video-id="vodFile?.vodVideoId ?? null" />
         </IframeContainer>
-        <IframeContainer v-slot="{ size }">
+        <div class="resize-bar" @mousedown="startResize"></div>
+        <IframeContainer class="second-player" :style="{ 'max-width': `${secondPlayerWidth}px` }" v-slot="{ size }">
             <YoutubePlayer
                 ref="second-player"
                 element-id="second-player"
@@ -324,14 +372,43 @@ watch(() => props.vodFile, () => {
     width: 100vw;
     height: calc(100vh - var(--toolbar-height));
 
-    padding: .75rem;
-    grid-gap: 0 .75rem;
-
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: calc(v-bind(vodPlayerWidth) * 1px) calc(v-bind(RESIZE_BAR_WIDTH) * 1px) calc(v-bind(secondPlayerWidth) * 1px);
     grid-template-rows: 1fr;
 
     align-items: center;
     justify-items: center;
+}
+
+.vod-player, .second-player {
+    padding: 0.75rem;
+
+    .resizing & {
+        pointer-events: none;
+    }
+}
+
+.vod-player {
+    padding-right: 0;
+}
+
+.second-player {
+    padding-left: 0;
+}
+
+.resize-bar {
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    cursor: col-resize;
+
+    &::before {
+        content: "";
+        width: 4px;
+        height: 16px;
+        border-inline: 1px solid var(--color-resize-bar-icon);
+    }
 }
 
 .active {

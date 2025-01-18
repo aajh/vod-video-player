@@ -137,12 +137,13 @@ onMounted(async () => {
     await youtubeIframeApiPromise;
 
     const p = new YT.Player(props.elementId, {
-        height: props.height,
         width: props.width,
+        height: props.height,
         playerVars: props.playerVars,
         events: {
             onReady: () => {
                 player = p;
+                player.setSize(props.width, props.height);
                 if (videoIdToBeQueued) {
                     player.cueVideoById(videoIdToBeQueued);
                     playbackRate.value = 1
@@ -278,5 +279,15 @@ watch(playbackRate, rate => {
 </script>
 
 <template>
-    <div :id="theElementId"></div>
+    <div class="youtube-container">
+        <div :id="theElementId"></div>
+    </div>
 </template>
+
+<style scoped>
+.youtube-container {
+    background-color: black;
+    width: 100%;
+    height: 100%;
+}
+</style>
