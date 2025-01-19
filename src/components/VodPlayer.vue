@@ -262,13 +262,6 @@ function onWindowResize() {
         vodPlayerWidth.value = playerContainerWidth.value / oldWidth * vodPlayerWidth.value;
     }
 }
-onWindowResize();
-onMounted(() => {
-    window.addEventListener('resize', onWindowResize);
-});
-onUnmounted(() => {
-    window.removeEventListener('resize', onWindowResize);
-});
 
 const resizing = ref(false);
 function startResize() {
@@ -280,10 +273,23 @@ function endResize() {
 }
 
 function updateResize(event: MouseEvent) {
+    if (!event.buttons) {
+        resizing.value = false;
+    }
     if (resizing.value) {
         vodPlayerWidth.value = event.clientX - RESIZE_BAR_WIDTH / 2;
     }
 }
+
+onWindowResize();
+onMounted(() => {
+    window.addEventListener('resize', onWindowResize);
+    window.addEventListener('mouseup', endResize);
+});
+onUnmounted(() => {
+    window.removeEventListener('resize', onWindowResize);
+    window.removeEventListener('mouseup', endResize);
+});
 </script>
 
 <template>
@@ -291,7 +297,6 @@ function updateResize(event: MouseEvent) {
         class="container"
         ref="player-container"
         :class="resizing && 'resizing'"
-        @mouseup="endResize"
         @mousemove="updateResize">
         <IframeContainer class="vod-player" :style="{ 'max-width': `${vodPlayerWidth}px` }" v-slot="{ size }">
             <YoutubePlayer
